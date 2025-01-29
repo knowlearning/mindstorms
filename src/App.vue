@@ -1,5 +1,6 @@
 <script setup>
   import { ref, reactive } from 'vue'
+  import Main from './main.vue'
 
   const width = ref(window.visualViewport.width)
   const height = ref(window.visualViewport.height)
@@ -53,9 +54,9 @@
       transition: width 0.05s ease-out, height 0.05s ease-out;
     `"
   >
-    <input type="text" />
-    {{ vv }}
-    <div id="app-footer"></div>
+    <Suspense>
+      <Main />
+    </Suspense>
   </div>
 </template>
 

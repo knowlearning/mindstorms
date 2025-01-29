@@ -1,23 +1,42 @@
 <script setup>
+  import { ref } from 'vue'
+
+  const width = ref(window.visualViewport.width)
+  const height = ref(window.visualViewport.height)
+
+  window.visualViewport.addEventListener('resize', () => {
+      width.value = window.visualViewport.width
+      height.value = window.visualViewport.height
+  })
+
 </script>
 
 <template>
-  <div>
-    Mindstorms!
+  <div
+    id="app-wrapper"
+    :style="`
+      width: ${width}px;
+      height: ${height}px;
+      transition: width 0.05s ease-out, height 0.05s ease-out;
+    `"
+  >
+    <div id="app-footer"></div>
   </div>
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+#app-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+#app-footer {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  border-bottom: 1px solid red;
+  border-top: 1px solid lime;
 }
 </style>

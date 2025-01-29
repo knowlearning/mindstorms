@@ -14,4 +14,10 @@ document.addEventListener('gesturestart', function (event) {
   event.preventDefault()
 })
 
-createApp(App).mount('#app')
+createApp(App)
+  .directive('focus', {
+    mounted(el, binding) {
+      setTimeout(() => el.focus(), 50)
+    }
+  })
+  .mount('#app')

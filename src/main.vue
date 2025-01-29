@@ -83,6 +83,8 @@
               <input
                 v-if="editingName && active"
                 type="text"
+                ref="nameInput"
+                v-focus
                 @keypress.enter="editingName = false"
                 @blur="editingName = false"
                 v-model="mindstorms[uuid].notes"
@@ -94,7 +96,7 @@
             <div v-if="active">
               <Button
                 icon="fa-solid fa-ellipsis"
-                @click="editingName = !editingName"
+                @mousedown="editingName = !editingName"
               />
             </div>
           </div>

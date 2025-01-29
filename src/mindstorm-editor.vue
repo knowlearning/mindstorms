@@ -9,24 +9,31 @@
 
   const mindstorm = reactive(await Agent.state(props.uuid))
 
-  if (!mindstorm.images) mindstorm.images = []
+  if (!mindstorm.resources) mindstorm.resources = []
 
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
-    mindstorm.images.push(uuid)
+    mindstorm.resources.push(uuid)
   }
 
 </script>
 
 <template>
   <div id="mindstorm-editor-wrapper">
-    <div>
-      <Button
-        icon="fa-solid fa-upload"
-        @click="uploadImage"
-      />
-      <div v-for="uuid in mindstorm.images">
-        <Image :uuid="uuid" />
+    <div id="resource-sidebar">
+      <div id="resource-sidebar-header">
+        <Button
+          icon="fa-solid fa-upload"
+          @click="uploadImage"
+        />
+      </div>
+      <div id="resource-sidebar-content">
+        <div v-for="uuid in mindstorm.resources">
+          <Image
+            :uuid="uuid"
+            style="width: 100%"
+          />
+        </div>
       </div>
     </div>
     <div id="mindstorm-editor">
@@ -51,6 +58,7 @@
     display: flex;
     width: 100%;
     height: 100%;
+    overflow: hidden;
   }
   #mindstorm-editor {
     width: 100%;
@@ -65,5 +73,18 @@
     height: 90%;
     display: block;
     overflow: visible;
+  }
+
+  #resource-sidebar {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 128px;
+  }
+
+  #resource-sidebar-content
+  {
+    flex-grow: 1;
+    overflow: scroll;
   }
 </style>

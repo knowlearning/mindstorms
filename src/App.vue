@@ -16,26 +16,16 @@
     }
   }
 
-  function mirrorVisualVueport(o) {
-    const { offsetLeft, offsetTop,pageLeft, pageTop, scale, width, height } = window.visualViewport
-    Object.assign(o, { offsetLeft, offsetTop, pageLeft, pageTop, scale, width, height })
-  }
-
-  const vv = reactive({})
-  mirrorVisualVueport(vv)
-
   const debouncedScrollIntoPlace = debounce(() => {
     body.scrollIntoView({ behavior: 'smooth' })
   }, 100)
 
   window.visualViewport.addEventListener('scroll', () => {
-    mirrorVisualVueport(vv)
     debouncedScrollIntoPlace()
 
   })
 
   window.visualViewport.addEventListener('resize', () => {
-    mirrorVisualVueport(vv)
     const { width: w, height: h, scale: s } = window.visualViewport
     body.style.width = `${w*s}px`
     html.style.height = `${h*s}px`

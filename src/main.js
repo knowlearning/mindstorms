@@ -3,11 +3,15 @@ import './style.css'
 import App from './app.vue'
 import Agent from '@knowlearning/agents'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faEllipsis } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faEllipsis, faUpload } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 
-library.add(faPencil)
-library.add(faEllipsis)
+library
+  .add(
+    faPencil,
+    faEllipsis,
+    faUpload
+  )
 window.Agent = Agent
 
 document.addEventListener('gesturestart', function (event) {

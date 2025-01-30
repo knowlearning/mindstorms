@@ -44,45 +44,34 @@
     }
   }
 
-  function handleResize({ detail: { svg_dx, svg_dy } }) {
+  function distance(x1, y1, x2, y2) {
+    const a = x1-x2
+    const b = y1-y2
+    return Math.sqrt(a*a + b*b)
+  }
+
+  function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
     const uuid = selected.value
     if (uuid && mindstorm[uuid]) {
       const { dimensions: d, origin: o, angle: a } = mindstorm[uuid]
 
+      const prev_svg_x = svg_x - svg_dx
+      const prev_svg_y = svg_y - svg_dy
       const prevWidth = d.width
       const prevHeight = d.height
 
+      const scale = distance(svg_x+svg_dx, svg_y+svg_dy, o.x, o.y)/distance(svg_x, svg_y, o.x, o.y)
 
-      const angle = a/180*Math.PI
-
-      const cosAngle = Math.cos(angle)
-      const sinAngle = Math.sin(angle)
-
-      const local_dx = svg_dx * cosAngle + svg_dy * sinAngle
-      const local_dy = -svg_dx * sinAngle + svg_dy * cosAngle
-
-      d.width = Math.max(5, d.width + local_dx*2)
-      d.height = Math.max(5, d.height + local_dy*2)
-
-      const scaleX = d.width/prevWidth
-      const scaleY = d.height/prevHeight
+      d.width = Math.max(5, d.width * scale)
+      d.height = Math.max(5, d.height * scale)
 
       d.x += (prevWidth - d.width)/2
       d.y += (prevHeight - d.height)/2
       o.x = d.x + d.width/2
       o.y = d.y + d.height/2
-    }
-  }
 
-  function handleRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
-    const uuid = selected.value
-    if (uuid && mindstorm[uuid]) {
-      const { x: ox, y: oy } = mindstorm[uuid].origin
-      const prev_svg_x = svg_x - svg_dx
-      const prev_svg_y = svg_y - svg_dy
-
-      const a1 = Math.atan2(svg_y - oy, svg_x - ox)
-      const a2 = Math.atan2(prev_svg_y - oy, prev_svg_x - ox)
+      const a1 = Math.atan2(svg_y - o.y, svg_x - o.x)
+      const a2 = Math.atan2(prev_svg_y - o.y, prev_svg_x - o.x)
 
       mindstorm[uuid].angle += (a1-a2)*180/Math.PI
     }
@@ -104,7 +93,7 @@
 <template>
   <div
     id="mindstorm-editor-wrapper"
-    @click="selected = null"
+    @mousedown="selected = null"
   >
     <div id="resource-sidebar">
       <div id="resource-sidebar-header">
@@ -121,7 +110,7 @@
         <Image
           v-for="{ dimensions, angle, origin }, uuid in mindstorm"
           :key="uuid"
-          @click.stop="selected = uuid"
+          @mousedown.stop="selected = uuid"
           svg
           :selected="selected === uuid"
           :uuid="uuid"
@@ -139,7 +128,7 @@
             stroke="black"
             stroke-dasharray="1,1"
             v-drag
-            @click.stop
+            @mousedown.stop
             @drag="handleDrag"
           />
           <circle
@@ -153,17 +142,8 @@
             :r="4"
             v-drag
             class="resizer-circle"
-            @click.stop
-            @drag="handleResize"
-          />
-          <circle
-            :cx="mindstorm[selected].dimensions.x"
-            :cy="mindstorm[selected].dimensions.y + mindstorm[selected].dimensions.height"
-            :r="4"
-            v-drag
-            class="rotater-circle"
-            @click.stop
-            @drag="handleRotate"
+            @mousedown.stop
+            @drag="handleResizeAndRotate"
           />
         </g>
         <rect
@@ -245,13 +225,11 @@
     background: #EEEEEE;
   }
 
-  .resizer-circle,
-  .rotater-circle {
+  .resizer-circle {
     fill: rgba(0,0,0,0.05);
   }
 
-  .resizer-circle:hover,
-  .rotater-circle:hover {
+  .resizer-circle:hover {
     fill: rgba(0,0,0,0.2);
   }
 </style>

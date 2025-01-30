@@ -1,6 +1,5 @@
 export default {
   mounted(el, binding) {
-    console.log('BINDING!', el, binding)
     let startX = 0
     let startY = 0
     let lastX = 0
@@ -64,12 +63,13 @@ export default {
       document.removeEventListener('touchend', handleEnd)
     }
 
+    el.handleStart = handleStart
     el.addEventListener('mousedown', handleStart)
     el.addEventListener('touchstart', handleStart)
   },
 
   unmounted(el) {
-    el.removeEventListener('mousedown', handleStart)
-    el.removeEventListener('touchstart', handleStart)
+    el.removeEventListener('mousedown', el.handleStart)
+    el.removeEventListener('touchstart', el.handleStart)
   }
 }

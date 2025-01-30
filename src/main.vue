@@ -40,7 +40,7 @@
 
     mindstorms[uuid] = {
       displayIndex: 0,
-      notes: 'hmmmmm ' + Date.now(),
+      label: 'New Mindstorm',
       active: true
     }
   }
@@ -72,7 +72,7 @@
       </div>
       <div id="sidebar-content">
         <div
-          v-for="[uuid, {notes, active}] in orderedVisibleMindstorms"
+          v-for="[uuid, {label, active}] in orderedVisibleMindstorms"
           :key="uuid"
           :class="{
             'sidebar-mindstorm': true,
@@ -92,11 +92,11 @@
                   v-focus
                   @keypress.enter="editingName = false"
                   @blur="editingName = false"
-                  v-model="mindstorms[uuid].notes"
+                  v-model="mindstorms[uuid].label"
                 />
               </span>
               <span v-else>
-                {{ notes }}
+                {{ label }}
               </span>
             </div>
             <div v-if="active">

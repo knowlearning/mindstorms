@@ -1,5 +1,6 @@
 <script setup>
   import { ref, reactive } from 'vue'
+  import { useKeyboardEvents } from './keyboard.js'
   import Button from './button.vue'
   import Image from './image.vue'
 
@@ -7,11 +8,17 @@
     uuid: String
   })
 
+  const { registerKey } = useKeyboardEvents()
+
+  registerKey('Delete', removeSelected)
+  registerKey('Backspace', removeSelected)
+
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
 
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
+    selected.value = uuid
     mindstorm[uuid] = {
       dimensions: {
         x: 10,
@@ -28,6 +35,11 @@
       mindstorm[uuid].dimensions.x += svg_dx
       mindstorm[uuid].dimensions.y += svg_dy
     }
+  }
+
+  function removeSelected() {
+    delete mindstorm[selected.value]
+    selected.value = null
   }
 
 </script>
@@ -48,6 +60,7 @@
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <Image
           v-for="{ dimensions }, uuid in mindstorm"
+          :key="uuid"
           @click="selected = uuid"
           svg
           :selected="selected === uuid"

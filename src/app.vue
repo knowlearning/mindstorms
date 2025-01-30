@@ -1,6 +1,7 @@
 <script setup>
   import { ref, reactive } from 'vue'
-  import Main from './main.vue'
+
+  defineProps(['component', 'props'])
 
   const width = ref(window.visualViewport.width)
   const height = ref(window.visualViewport.height)
@@ -45,7 +46,7 @@
     `"
   >
     <Suspense>
-      <Main />
+      <Component :is="component" v-bind="props" />
     </Suspense>
   </div>
 </template>

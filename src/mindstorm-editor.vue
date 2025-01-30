@@ -1,5 +1,6 @@
 <script setup>
   import { ref, reactive, watch } from 'vue'
+  import { vueEmbedComponent } from '@knowlearning/agents/vue.js'
   import { compare, applyPatch } from 'fast-json-patch'
   import { useKeyboardEvents } from './keyboard.js'
   import Button from './button.vue'
@@ -16,9 +17,10 @@
 
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
-  const editingWorld = ref(true)
+  const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
   const worldEdit = ref(JSON.stringify(mindstorm, null, 2))
+  const playMode = ref(false)
 
   watch(() => mindstorm, () => {
     worldEdit.value = JSON.stringify(mindstorm, null, 2)
@@ -57,6 +59,9 @@
       origin: {
         x: 50,
         y: 50
+      },
+      handlers: {
+        click: "alert('Ouch!')"
       }
     }
   }
@@ -119,12 +124,22 @@
 </script>
 
 <template>
+  <div id="mindstorm-player-wrapper"
+    v-if="playMode"
+  >
+    <vueEmbedComponent :id="uuid" />
+  </div>
   <div
+    v-else
     id="mindstorm-editor-wrapper"
     @mousedown="selected = null"
   >
     <div id="resource-sidebar">
       <div id="resource-sidebar-header">
+        <Button
+          icon="fa-solid fa-play"
+          @click="playMode = true"
+        />
         <Button
           icon="fa-solid fa-upload"
           @click="uploadImage"
@@ -137,7 +152,7 @@
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <Image
           v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
-          :key="name"
+          :key="sprite"
           @mousedown.stop="selected = name"
           svg
           :selected="selected === name"
@@ -231,6 +246,13 @@
 <style>
   #mindstorm-editor-wrapper {
     display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #mindstorm-player-wrapper {
+    position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;

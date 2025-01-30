@@ -18,6 +18,8 @@
     )
   })
 
+  const orderedVisibleMindstorms = computed(() => orderedMindstorms.value.filter(([_, { deleted }]) => !deleted))
+
   const activeMindstorm = computed(() => {
     const active = Object.entries(mindstorms).find(([id, {active}]) => active)
     return active ? active[0] : null
@@ -70,7 +72,7 @@
       </div>
       <div id="sidebar-content">
         <div
-          v-for="[uuid, {notes, active}] in orderedMindstorms"
+          v-for="[uuid, {notes, active}] in orderedVisibleMindstorms"
           :key="uuid"
           :class="{
             'sidebar-mindstorm': true,
@@ -80,15 +82,19 @@
         >
           <div class="sidebar-mindstorm-inner">
             <div class="sidebar-mindstorm-name">
-              <input
-                v-if="editingName && active"
-                type="text"
-                ref="nameInput"
-                v-focus
-                @keypress.enter="editingName = false"
-                @blur="editingName = false"
-                v-model="mindstorms[uuid].notes"
-              />
+              <span v-if="editingName && active">
+                <Button
+                  icon="fa-solid fa-xmark"
+                  @mousedown="mindstorms[uuid].deleted = true"
+                /> <input
+                  type="text"
+                  ref="nameInput"
+                  v-focus
+                  @keypress.enter="editingName = false"
+                  @blur="editingName = false"
+                  v-model="mindstorms[uuid].notes"
+                />
+              </span>
               <span v-else>
                 {{ notes }}
               </span>

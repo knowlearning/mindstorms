@@ -1,5 +1,5 @@
 <script setup>
-  import { reactive } from 'vue'
+  import { ref, reactive } from 'vue'
   import Button from './button.vue'
   import Image from './image.vue'
 
@@ -7,13 +7,17 @@
     uuid: String
   })
 
+  const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
-
-  if (!mindstorm.resources) mindstorm.resources = []
 
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
-    mindstorm.resources.push(uuid)
+    mindstorm[uuid] = {
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 80
+    }
   }
 
 </script>
@@ -28,12 +32,6 @@
         />
       </div>
       <div id="resource-sidebar-content">
-        <div v-for="uuid in mindstorm.resources">
-          <Image
-            :uuid="uuid"
-            style="width: 100%"
-          />
-        </div>
       </div>
     </div>
     <div id="mindstorm-editor">
@@ -47,6 +45,14 @@
           stroke-width="1"
           stroke="black"
           rx="2"
+        />
+        <Image
+          v-for="{ x, y, width, height }, uuid in mindstorm"
+          @click="selected = uuid"
+          svg
+          :selected="selected === uuid"
+          :uuid="uuid"
+          :dimensions="{ x, y, width, height }"
         />
       </svg>
     </div>

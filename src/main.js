@@ -3,7 +3,7 @@ import './style.css'
 import App from './app.vue'
 import Agent from '@knowlearning/agents'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faEllipsis, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faEllipsis, faUpload, faXmark, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import drag from './drag.js';
 
@@ -12,7 +12,8 @@ library
     faPencil,
     faEllipsis,
     faUpload,
-    faXmark
+    faXmark,
+    faGlobe
   )
 
 window.Agent = Agent

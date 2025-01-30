@@ -1,5 +1,6 @@
 <script setup>
-  import { ref, reactive } from 'vue'
+  import { ref, reactive, watch } from 'vue'
+  import { compare, applyPatch } from 'fast-json-patch'
   import { useKeyboardEvents } from './keyboard.js'
   import Button from './button.vue'
   import Image from './image.vue'
@@ -15,14 +16,28 @@
 
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
+  const editingWorld = ref(true)
+  const codeSidebarWidth = ref(window.innerWidth/3)
+  const worldEdit = ref(JSON.stringify(mindstorm, null, 2))
+
+  watch(() => mindstorm, () => {
+    worldEdit.value = JSON.stringify(mindstorm, null, 2)
+  }, { deep: true })
+
+  watch(() => worldEdit.value, () => {
+    try {
+      const edited = JSON.parse(worldEdit.value)
+      applyPatch(mindstorm, compare(mindstorm, edited))
+    }
+    catch (error) {
+      console.log('ERROR PARSING WORLD EDIT')
+    }
+  })
 
   function newItemName() {
     let index = 1
     let name = `item${index}`
-    while (mindstorm[name]) {
-      index += 1
-      name = `item${index}`
-    }
+    while (mindstorm[name]) name = `item${index++}`
     return name
   }
 
@@ -172,19 +187,43 @@
         />
       </svg>
     </div>
-    <div id="right-sidebar">
-      <div
-        v-for="item, name in mindstorm"
-        :key="name"
-        :class="{
-          'sidebar-mindstorm-item': true,
-          selected: selected === name
-        }"
-        :selected="selected === name"
-        @click.stop="selected = name"
-      >
-        {{ name }}
+    <div id="world-sidebar">
+      <div id="world-sidebar-header">
+        <Button
+          icon="fa-solid fa-globe"
+          @click="() => {
+            editingWorld = !editingWorld
+          }"
+        />
       </div>
+      <div id="world-sidebar-content">
+        <div
+          v-for="item, name in mindstorm"
+          :key="name"
+          :class="{
+            'sidebar-mindstorm-item': true,
+            selected: selected === name
+          }"
+          :selected="selected === name"
+          @click.stop="selected = name"
+        >
+          {{ name }}
+        </div>
+      </div>
+    </div>
+    <div
+      id="code-sidebar"
+      v-if="editingWorld"
+      :style="`
+        flex: none;
+        width: ${codeSidebarWidth}px;
+      `"
+    >
+      <textarea
+        id="world-editor"
+        v-focus
+        v-model="worldEdit"
+      />
     </div>
   </div>
 </template>
@@ -213,15 +252,16 @@
     overflow: visible;
   }
 
-  #resource-sidebar {
+  #resource-sidebar,
+  #world-sidebar {
     display: flex;
     flex-direction: column;
     overflow: hidden;
     width: 128px;
   }
 
-  #resource-sidebar-content
-  {
+  #resource-sidebar-content,
+  #world-sidebar-content {
     flex-grow: 1;
     overflow: scroll;
   }
@@ -245,4 +285,19 @@
   .resizer-circle:hover {
     fill: rgba(0,0,0,0.2);
   }
+
+  #code-sidebar {
+    position: relative;
+  }
+
+  #world-editor {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+    resize: none;
+    background: #EEEEEE;
+  }
+
 </style>

@@ -127,6 +127,12 @@
   <div id="mindstorm-player-wrapper"
     v-if="playMode"
   >
+    <div id="mindstorm-player-controls">
+      <Button
+        icon="fa-solid fa-xmark"
+        @click="playMode = false"
+      />
+    </div>
     <vueEmbedComponent :id="uuid" />
   </div>
   <div
@@ -320,6 +326,10 @@
     padding: 0;
     resize: none;
     background: #EEEEEE;
+  }
+
+  #mindstorm-player-controls {
+    position: absolute;
   }
 
 </style>

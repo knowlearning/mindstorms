@@ -5,7 +5,7 @@ import Main from './main.vue'
 import Player from './player.vue'
 import Agent from '@knowlearning/agents'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faPencil, faEllipsis, faUpload, faXmark, faGlobe, faPlay } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faEllipsis, faUpload, faXmark, faGlobe, faPlay, faPause } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import drag from './drag.js'
 
@@ -36,7 +36,8 @@ else {
       faUpload,
       faXmark,
       faGlobe,
-      faPlay
+      faPlay,
+      faPause
     )
 
   createApp(App, { component: Main, props: {} })

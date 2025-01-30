@@ -16,10 +16,22 @@
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
 
+  function newItemName() {
+    let index = 1
+    let name = `item${index}`
+    while (mindstorm[name]) {
+      index += 1
+      name = `item${index}`
+    }
+    return name
+  }
+
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
-    selected.value = uuid
-    mindstorm[uuid] = {
+    const name = newItemName()
+    selected.value = name
+    mindstorm[name] = {
+      sprite: uuid,
       dimensions: {
         x: 10,
         y: 10,
@@ -35,12 +47,13 @@
   }
 
   function handleDrag({ detail: { svg_dx, svg_dy } }) {
-    const uuid = selected.value
-    if (uuid && mindstorm[uuid]) {
-      mindstorm[uuid].dimensions.x += svg_dx
-      mindstorm[uuid].dimensions.y += svg_dy
-      mindstorm[uuid].origin.x += svg_dx
-      mindstorm[uuid].origin.y += svg_dy
+    const name = selected.value
+    if (name && mindstorm[name]) {
+      const { dimensions, origin } = mindstorm[name]
+      dimensions.x += svg_dx
+      dimensions.y += svg_dy
+      origin.x += svg_dx
+      origin.y += svg_dy
     }
   }
 
@@ -51,9 +64,9 @@
   }
 
   function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
-    const uuid = selected.value
-    if (uuid && mindstorm[uuid]) {
-      const { dimensions: d, origin: o, angle: a } = mindstorm[uuid]
+    const name = selected.value
+    if (name && mindstorm[name]) {
+      const { dimensions: d, origin: o, angle: a } = mindstorm[name]
 
       const prev_svg_x = svg_x - svg_dx
       const prev_svg_y = svg_y - svg_dy
@@ -73,7 +86,7 @@
       const a1 = Math.atan2(svg_y - o.y, svg_x - o.x)
       const a2 = Math.atan2(prev_svg_y - o.y, prev_svg_x - o.x)
 
-      mindstorm[uuid].angle += (a1-a2)*180/Math.PI
+      mindstorm[name].angle += (a1-a2)*180/Math.PI
     }
   }
 
@@ -108,12 +121,12 @@
     <div id="mindstorm-editor">
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <Image
-          v-for="{ dimensions, angle, origin }, uuid in mindstorm"
-          :key="uuid"
-          @mousedown.stop="selected = uuid"
+          v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
+          :key="name"
+          @mousedown.stop="selected = name"
           svg
-          :selected="selected === uuid"
-          :uuid="uuid"
+          :selected="selected === name"
+          :uuid="sprite"
           :dimensions="dimensions"
           :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
         />
@@ -161,16 +174,16 @@
     </div>
     <div id="right-sidebar">
       <div
-        v-for="item, uuid in mindstorm"
-        :key="uuid"
+        v-for="item, name in mindstorm"
+        :key="name"
         :class="{
           'sidebar-mindstorm-item': true,
-          selected: selected === uuid
+          selected: selected === name
         }"
-        :selected="selected === uuid"
-        @click.stop="selected = uuid"
+        :selected="selected === name"
+        @click.stop="selected = name"
       >
-        {{ item.name || 'unnamed item' }}
+        {{ name }}
       </div>
     </div>
   </div>

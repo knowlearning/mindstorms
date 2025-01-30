@@ -37,6 +37,15 @@
     }
   }
 
+  function handleResize({ detail: { svg_dx, svg_dy } }) {
+    const uuid = selected.value
+    if (uuid && mindstorm[uuid]) {
+      const d = mindstorm[uuid].dimensions
+      d.width = Math.max(5, d.width + svg_dx)
+      d.height = Math.max(5, d.height + svg_dy)
+    }
+  }
+
   function removeSelected() {
     delete mindstorm[selected.value]
     selected.value = null
@@ -80,6 +89,15 @@
           v-drag
           @click.stop
           @drag="handleDrag"
+        />
+        <circle v-if="selected"
+          :cx="mindstorm[selected].dimensions.x + mindstorm[selected].dimensions.width"
+          :cy="mindstorm[selected].dimensions.y + mindstorm[selected].dimensions.height"
+          :r="4"
+          v-drag
+          class="resizer-circle"
+          @click.stop
+          @drag="handleResize"
         />
         <rect
           x="0"
@@ -158,5 +176,13 @@
 
   .sidebar-mindstorm-item.selected {
     background: #EEEEEE;
+  }
+
+  .resizer-circle {
+    fill: rgba(0,0,0,0.05);
+  }
+
+  .resizer-circle:hover {
+    fill: rgba(0,0,0,0.2);
   }
 </style>

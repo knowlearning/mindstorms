@@ -1,7 +1,7 @@
 <script setup>
   import { ref, reactive, computed } from 'vue'
   import Button from './button.vue'
-  import MindstormEditor from './mindstorm-editor.vue'
+  import Editor from './editor.vue'
 
   const mindstorms = reactive(await Agent.state('mindstorms'))
   const sidebarWidth = ref(300)
@@ -110,7 +110,7 @@
       </div>
     </div>
     <div id="content">
-      <MindstormEditor
+      <Editor
         v-if="activeMindstorm"
         :key="activeMindstorm"
         :uuid="activeMindstorm"

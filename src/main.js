@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './app.vue'
-import Main from './main.vue'
+import Manager from './manager.vue'
 import Player from './player.vue'
 import Agent from '@knowlearning/agents'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -40,7 +40,7 @@ else {
       faPause
     )
 
-  createApp(App, { component: Main, props: {} })
+  createApp(App, { component: Manager, props: {} })
     .directive('focus', {
       mounted(el, binding) {
         setTimeout(() => el.focus(), 50)

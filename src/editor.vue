@@ -124,19 +124,7 @@
 </script>
 
 <template>
-  <div id="mindstorm-player-wrapper"
-    v-if="playMode"
-  >
-    <div id="mindstorm-player-controls">
-      <Button
-        icon="fa-solid fa-xmark"
-        @click="playMode = false"
-      />
-    </div>
-    <vueEmbedComponent :id="uuid" />
-  </div>
   <div
-    v-else
     id="mindstorm-editor-wrapper"
     @mousedown="selected = null"
   >
@@ -247,6 +235,17 @@
       />
     </div>
   </div>
+  <div id="mindstorm-player-wrapper"
+    v-if="playMode"
+  >
+    <div id="mindstorm-player-controls">
+      <Button
+        icon="fa-solid fa-xmark"
+        @click="playMode = false"
+      />
+    </div>
+    <vueEmbedComponent :id="uuid" />
+  </div>
 </template>
 
 <style>
@@ -258,10 +257,12 @@
   }
 
   #mindstorm-player-wrapper {
-    position: relative;
+    position: absolute;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    top: 0;
+    left: 0;
   }
 
   #mindstorm-editor {

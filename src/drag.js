@@ -49,6 +49,15 @@ export default {
 
           detail.svg_dx = dx * sx
           detail.svg_dy = dy * sy
+
+          if (ctm) {
+            const point = svgElement.createSVGPoint()
+            point.x = clientX
+            point.y = clientY
+            const svgPoint = point.matrixTransform(ctm.inverse())
+            detail.svg_x = svgPoint.x
+            detail.svg_y = svgPoint.y
+          }
         }
 
         el.dispatchEvent(new CustomEvent('drag', { detail }))

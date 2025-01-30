@@ -45,7 +45,10 @@
 </script>
 
 <template>
-  <div id="mindstorm-editor-wrapper">
+  <div
+    id="mindstorm-editor-wrapper"
+    @click="selected = null"
+  >
     <div id="resource-sidebar">
       <div id="resource-sidebar-header">
         <Button
@@ -61,7 +64,7 @@
         <Image
           v-for="{ dimensions }, uuid in mindstorm"
           :key="uuid"
-          @click="selected = uuid"
+          @click.stop="selected = uuid"
           svg
           :selected="selected === uuid"
           :uuid="uuid"
@@ -75,6 +78,7 @@
           stroke="black"
           stroke-dasharray="1,1"
           v-drag
+          @click.stop
           @drag="handleDrag"
         />
         <rect
@@ -90,6 +94,20 @@
         />
       </svg>
     </div>
+    <div id="right-sidebar">
+      <div
+        v-for="item, uuid in mindstorm"
+        :key="uuid"
+        :class="{
+          'sidebar-mindstorm-item': true,
+          selected: selected === uuid
+        }"
+        :selected="selected === uuid"
+        @click.stop="selected = uuid"
+      >
+        {{ item.name || 'unnamed item' }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -100,6 +118,7 @@
     height: 100%;
     overflow: hidden;
   }
+
   #mindstorm-editor {
     width: 100%;
     height: 100%;
@@ -108,6 +127,7 @@
     align-items: center;
     justify-content: center;
   }
+
   #mindstorm-editor svg {
     width: 90%;
     height: 90%;
@@ -126,5 +146,17 @@
   {
     flex-grow: 1;
     overflow: scroll;
+  }
+
+  #right-sidebar {
+    white-space: nowrap;
+  }
+
+  .sidebar-mindstorm-item {
+    padding: 8px 16px;
+  }
+
+  .sidebar-mindstorm-item.selected {
+    background: #EEEEEE;
   }
 </style>

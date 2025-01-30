@@ -13,10 +13,12 @@
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
     mindstorm[uuid] = {
-      x: 10,
-      y: 10,
-      width: 80,
-      height: 80
+      dimensions: {
+        x: 10,
+        y: 10,
+        width: 80,
+        height: 80
+      }
     }
   }
 
@@ -47,12 +49,20 @@
           rx="2"
         />
         <Image
-          v-for="{ x, y, width, height }, uuid in mindstorm"
+          v-for="{ dimensions }, uuid in mindstorm"
           @click="selected = uuid"
           svg
           :selected="selected === uuid"
           :uuid="uuid"
-          :dimensions="{ x, y, width, height }"
+          :dimensions="dimensions"
+        />
+        <rect
+          v-if="selected"
+          v-bind="mindstorm[selected].dimensions"
+          fill="rgba(0,0,0,0)"
+          stroke-width="0.5"
+          stroke="black"
+          stroke-dasharray="1,1"
         />
       </svg>
     </div>

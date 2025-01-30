@@ -28,14 +28,6 @@
         :href="url"
         v-bind="dimensions"
       />
-      <rect
-        v-if="selected"
-        v-bind="dimensions"
-        fill="rgba(0,0,0,0)"
-        stroke-width="0.5"
-        stroke="black"
-        stroke-dasharray="1,1"
-      />
     </g>
   </template>
   <img

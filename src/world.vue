@@ -14,6 +14,11 @@
 
 <template>
   <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <clipPath id="myClip">
+        <rect x="0" y="0" width="100" height="100" rx="2" />
+      </clipPath>
+    </defs>
     <rect
       x="0"
       y="0"
@@ -25,17 +30,19 @@
       stroke="black"
       rx="2"
     />
-    <Image
-      v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
-      :key="sprite"
-      @mousedown.stop="selected = name"
-      @click="handleClick(name)"
-      svg
-      :selected="selected === name"
-      :uuid="sprite"
-      :dimensions="dimensions"
-      :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
-    />
+    <g clip-path="url(#myClip)">
+      <Image
+        v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
+        :key="sprite"
+        @mousedown.stop="selected = name"
+        @click="handleClick(name)"
+        svg
+        :selected="selected === name"
+        :uuid="sprite"
+        :dimensions="dimensions"
+        :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
+      />
+    </g>
     <rect
       x="0"
       y="0"

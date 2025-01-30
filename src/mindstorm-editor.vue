@@ -46,16 +46,6 @@
     </div>
     <div id="mindstorm-editor">
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <rect
-          x="0"
-          y="0"
-          width="100"
-          height="100"
-          fill="none"
-          stroke-width="1"
-          stroke="black"
-          rx="2"
-        />
         <Image
           v-for="{ dimensions }, uuid in mindstorm"
           @click="selected = uuid"
@@ -73,6 +63,17 @@
           stroke-dasharray="1,1"
           v-drag
           @drag="handleDrag"
+        />
+        <rect
+          x="0"
+          y="0"
+          style="pointer-events: none;"
+          width="100"
+          height="100"
+          fill="none"
+          stroke-width="0.5"
+          stroke="black"
+          rx="2"
         />
       </svg>
     </div>

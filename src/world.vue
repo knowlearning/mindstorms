@@ -3,7 +3,13 @@
 
   const props = defineProps({ uuid: String })
   const mindstorm = await Agent.state(props.uuid)
-  console.log(mindstorm, props.uuid)
+
+  function handleClick(name) {
+    const clickHandler = mindstorm?.[name]?.handlers?.click
+    if (clickHandler) {
+      eval(clickHandler)
+    }
+  }
 </script>
 
 <template>
@@ -12,6 +18,7 @@
       v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
       :key="sprite"
       @mousedown.stop="selected = name"
+      @click="handleClick(name)"
       svg
       :selected="selected === name"
       :uuid="sprite"

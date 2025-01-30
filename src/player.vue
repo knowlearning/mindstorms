@@ -2,7 +2,6 @@
   import World from './world.vue'
 
   const props = defineProps({ uuid: String })
-  console.log('player props', props)
 </script>
 
 <template>

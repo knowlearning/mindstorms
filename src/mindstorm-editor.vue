@@ -22,6 +22,14 @@
     }
   }
 
+  function handleDrag({ detail: { svg_dx, svg_dy } }) {
+    const uuid = selected.value
+    if (uuid && mindstorm[uuid]) {
+      mindstorm[uuid].dimensions.x += svg_dx
+      mindstorm[uuid].dimensions.y += svg_dy
+    }
+  }
+
 </script>
 
 <template>
@@ -63,6 +71,8 @@
           stroke-width="0.5"
           stroke="black"
           stroke-dasharray="1,1"
+          v-drag
+          @drag="handleDrag"
         />
       </svg>
     </div>

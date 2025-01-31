@@ -1,20 +1,36 @@
 <script setup>
-  import { reactive } from 'vue'
+  import { ref, reactive } from 'vue'
   import Image from './image.vue'
 
   const props = defineProps({ uuid: String })
 
   const mindstorm = JSON.parse(JSON.stringify(await Agent.state(props.uuid)))
   const world = reactive(await Agent.state(`run-state/${props.uuid}`))
+  const svg = ref(null)
 
   Object.keys(world).forEach(key => delete world[key])
   Object.assign(world, mindstorm)
 
-  function handleClick(name) {
-    const clickHandler = world?.[name]?.handlers?.click
-    if (clickHandler) {
+  function handleClick(name, rawEvent) {
+    const handler = world?.[name]?.handlers?.click
+    if (handler) {
       try {
-        const result = (new Function('world', `with (world) { ${clickHandler} }`))(world)
+        const event = {}
+        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+        const result = scopedHandler.bind(world[name])(world, event)
+      } catch (error) {
+        console.error('Error:', error.message)
+      }
+    }
+  }
+
+  function handleDrag(name, { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } }) {
+    const handler = world?.[name]?.handlers?.drag
+    if (handler) {
+      try {
+        const event = { x, y, dx, dy }
+        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+        const result = scopedHandler.bind(world[name])(world, event)
       } catch (error) {
         console.error('Error:', error.message)
       }
@@ -23,7 +39,11 @@
 </script>
 
 <template>
-  <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+  <svg
+    ref="svg"
+    viewBox="0 0 100 100"
+    preserveAspectRatio="xMidYMid meet"
+  >
     <defs>
       <clipPath id="myClip">
         <rect x="0" y="0" width="100" height="100" rx="2" />
@@ -44,7 +64,9 @@
       <Image
         v-for="{ dimensions, angle, origin, sprite }, name in world"
         :key="sprite"
-        @click="handleClick(name)"
+        v-drag
+        @drag="event => handleDrag(name, event)"
+        @click="event => handleClick(name, event)"
         svg
         :uuid="sprite"
         :dimensions="dimensions"

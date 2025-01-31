@@ -329,10 +329,10 @@
 
   #world-editor {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
     border: none;
-    padding: 0;
+    padding: 4px;
     resize: none;
     background: #EEEEEE;
   }

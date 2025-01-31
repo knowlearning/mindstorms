@@ -1,9 +1,6 @@
 export default {
   mounted(el, binding) {
-    let startX = 0
-    let startY = 0
-    let lastX = 0
-    let lastY
+    let startX, startY, lastX, lastY
     let isDragging = false
 
     const handleStart = (event) => {

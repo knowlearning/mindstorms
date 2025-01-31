@@ -234,7 +234,8 @@
         id="world-editor"
         v-focus
         v-model="worldEdit"
-        @keypress.enter="updateMindstorm"
+        @keypress.enter.shift.prevent="updateMindstorm"
+        @blur="updateMindstorm"
       />
     </div>
   </div>

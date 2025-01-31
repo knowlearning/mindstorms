@@ -1,13 +1,23 @@
 <script setup>
+  import { reactive } from 'vue'
   import Image from './image.vue'
 
   const props = defineProps({ uuid: String })
-  const mindstorm = await Agent.state(props.uuid)
+
+  const mindstorm = JSON.parse(JSON.stringify(await Agent.state(props.uuid)))
+  const world = reactive(await Agent.state(`run-state/${props.uuid}`))
+
+  Object.keys(world).forEach(key => delete world[key])
+  Object.assign(world, mindstorm)
 
   function handleClick(name) {
-    const clickHandler = mindstorm?.[name]?.handlers?.click
+    const clickHandler = world?.[name]?.handlers?.click
     if (clickHandler) {
-      eval(clickHandler)
+      try {
+        const result = (new Function('world', `with (world) { return ${clickHandler} }`))(world)
+      } catch (error) {
+        console.error('Error:', error.message)
+      }
     }
   }
 </script>
@@ -32,7 +42,7 @@
     />
     <g clip-path="url(#myClip)">
       <Image
-        v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
+        v-for="{ dimensions, angle, origin, sprite }, name in world"
         :key="sprite"
         @mousedown.stop="selected = name"
         @click="handleClick(name)"

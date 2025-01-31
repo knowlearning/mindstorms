@@ -28,7 +28,7 @@
     worldEdit.value = yaml.stringify(mindstorm, { indent: 4 })
   }, { deep: true })
 
-  watch(() => worldEdit.value, () => {
+  function updateMindstorm() {
     try {
       const edited = yaml.parse(worldEdit.value, { strict: true })
       applyPatch(mindstorm, compare(mindstorm, edited))
@@ -36,7 +36,7 @@
     catch (error) {
       console.log('ERROR PARSING WORLD EDIT')
     }
-  })
+  }
 
   function newItemName() {
     let index = 1
@@ -234,6 +234,7 @@
         id="world-editor"
         v-focus
         v-model="worldEdit"
+        @keypress.enter="updateMindstorm"
       />
     </div>
   </div>

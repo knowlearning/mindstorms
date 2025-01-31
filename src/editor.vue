@@ -14,6 +14,7 @@
 
   registerKey('Delete', removeSelected)
   registerKey('Backspace', removeSelected)
+  registerKey('Escape', () => playMode.value = false)
 
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
@@ -244,7 +245,10 @@
         @click="playMode = false"
       />
     </div>
-    <vueEmbedComponent :id="uuid" />
+    <vueEmbedComponent
+      :id="uuid"
+      @close="playMode = false"
+    />
   </div>
 </template>
 

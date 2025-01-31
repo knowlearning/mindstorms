@@ -44,10 +44,8 @@
       <Image
         v-for="{ dimensions, angle, origin, sprite }, name in world"
         :key="sprite"
-        @mousedown.stop="selected = name"
         @click="handleClick(name)"
         svg
-        :selected="selected === name"
         :uuid="sprite"
         :dimensions="dimensions"
         :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"

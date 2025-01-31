@@ -1,7 +1,13 @@
 <script setup>
   import World from './world.vue'
+  import { useKeyboardEvents } from './keyboard.js'
 
   const props = defineProps({ uuid: String })
+
+  const { registerKey } = useKeyboardEvents()
+
+  registerKey('Escape', () => Agent.close())
+
 </script>
 
 <template>

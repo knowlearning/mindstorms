@@ -23,22 +23,51 @@
   registerAnimationCallback(() => {
     Object
       .entries(world)
-      .forEach(([name1, { dimensions: d1, handlers }]) => {
+      .forEach(([name1, { dimensions: d1, handlers, collisions }]) => {
+        const collisionsSeen = {}
+
+        if (!collisions) {
+          world[name1].collisions = {}
+          collisions = world[name1].collisions
+        }
+
         Object
           .entries(world)
-          .forEach(([name2, other]) => {
+          .forEach(([name2, { dimensions: d2 }]) => {
             if (name1 === name2) return
 
-            const { dimensions: d2 } = other
-            if (handlers?.collision && checkCollision(d1, d2)) {
-              const handler = handlers.collision
+            if (handlers?.collide && checkCollision(d1, d2)) {
+              const handler = handlers.collide
+              collisionsSeen[name2] = true
+              if (collisions[name2]) return
+
+              collisions[name2] = { someCollisionData: false }
               try {
-                const event = { other }
+                const event = { other: name2 }
+
                 const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
                 const result = scopedHandler.bind(world[name])(world, event)
               }
               catch (error) {
                 console.error('Error:', error.message)
+              }
+            }
+          })
+        Object
+          .keys(collisions)
+          .forEach(name => {
+            if (!collisionsSeen[name]) {
+              delete collisions[name]
+              if (handlers?.uncollide) {
+                const handler = handlers.uncollide
+                try {
+                  const event = { other: name }
+                  const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+                  const result = scopedHandler.bind(world[name])(world, event)
+                }
+                catch (error) {
+                  console.error('Error:', error.message)
+                }
               }
             }
           })

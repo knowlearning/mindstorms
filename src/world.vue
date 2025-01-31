@@ -14,7 +14,7 @@
     const clickHandler = world?.[name]?.handlers?.click
     if (clickHandler) {
       try {
-        const result = (new Function('world', `with (world) { return ${clickHandler} }`))(world)
+        const result = (new Function('world', `with (world) { ${clickHandler} }`))(world)
       } catch (error) {
         console.error('Error:', error.message)
       }

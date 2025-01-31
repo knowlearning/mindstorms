@@ -2,6 +2,7 @@
   import { ref, reactive, watch } from 'vue'
   import { vueEmbedComponent } from '@knowlearning/agents/vue.js'
   import { compare, applyPatch } from 'fast-json-patch'
+  import * as yaml from 'yaml'
   import { useKeyboardEvents } from './keyboard.js'
   import Button from './button.vue'
   import Image from './image.vue'
@@ -20,16 +21,16 @@
   const mindstorm = reactive(await Agent.state(props.uuid))
   const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
-  const worldEdit = ref(JSON.stringify(mindstorm, null, 2))
+  const worldEdit = ref(yaml.stringify(mindstorm, { indent: 4 }))
   const playMode = ref(false)
 
   watch(() => mindstorm, () => {
-    worldEdit.value = JSON.stringify(mindstorm, null, 2)
+    worldEdit.value = yaml.stringify(mindstorm, { indent: 4 })
   }, { deep: true })
 
   watch(() => worldEdit.value, () => {
     try {
-      const edited = JSON.parse(worldEdit.value)
+      const edited = yaml.parse(worldEdit.value, { strict: true })
       applyPatch(mindstorm, compare(mindstorm, edited))
     }
     catch (error) {
@@ -236,7 +237,9 @@
       />
     </div>
   </div>
-  <div id="mindstorm-player-wrapper"
+  <div
+    id="mindstorm-player-wrapper"
+    class="fade-in"
     v-if="playMode"
   >
     <div id="mindstorm-player-controls">
@@ -248,6 +251,7 @@
     <vueEmbedComponent
       :id="uuid"
       @close="playMode = false"
+      style="background: black;"
     />
   </div>
 </template>
@@ -335,6 +339,20 @@
 
   #mindstorm-player-controls {
     position: absolute;
+  }
+
+  .fade-in {
+      opacity: 0;
+      animation: fadeIn 0.2s ease-in forwards;
+  }
+
+  @keyframes fadeIn {
+      from {
+          opacity: 0;
+      }
+      to {
+          opacity: 1;
+      }
   }
 
 </style>

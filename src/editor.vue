@@ -50,7 +50,9 @@
     const name = newItemName()
     selected.value = name
     mindstorm[name] = {
-      sprite: uuid,
+      sprite: {
+        sheet: uuid
+      },
       dimensions: {
         x: 10,
         y: 10,
@@ -148,11 +150,11 @@
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
         <Image
           v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
-          :key="sprite"
+          :key="name"
           @mousedown.stop="selected = name"
           svg
           :selected="selected === name"
-          :uuid="sprite"
+          :uuid="sprite.sheet"
           :dimensions="dimensions"
           :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
         />

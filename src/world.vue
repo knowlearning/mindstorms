@@ -129,12 +129,12 @@
     <g clip-path="url(#myClip)">
       <Image
         v-for="{ dimensions, angle, origin, sprite }, name in world"
-        :key="sprite"
+        :key="name"
         v-drag
         @drag="event => handleDrag(name, event)"
         @click="event => handleClick(name, event)"
         svg
-        :uuid="sprite"
+        :uuid="sprite.sheet"
         :dimensions="dimensions"
         :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
       />

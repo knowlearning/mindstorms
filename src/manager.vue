@@ -1,7 +1,7 @@
 <script setup>
   import { ref, reactive, computed } from 'vue'
   import Button from './button.vue'
-  import Editor from './editor.vue'
+  import Editor from './editors/world.vue'
 
   const mindstorms = reactive(await Agent.state('mindstorms'))
   const sidebarWidth = ref(300)

@@ -1,11 +1,10 @@
 <script setup>
   import { ref, reactive, watch } from 'vue'
   import { vueEmbedComponent } from '@knowlearning/agents/vue.js'
-  import { compare, applyPatch } from 'fast-json-patch'
-  import * as yaml from 'yaml'
-  import { useKeyboardEvents } from './keyboard.js'
-  import World from './world.vue'
-  import Button from './button.vue'
+  import { useKeyboardEvents } from '../keyboard.js'
+  import World from '../world.vue'
+  import Button from '../button.vue'
+  import YAMLEditor from './yaml.vue'
 
   const props = defineProps({
     uuid: String
@@ -21,22 +20,7 @@
   const mindstorm = reactive(await Agent.state(props.uuid))
   const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
-  const worldEdit = ref(yaml.stringify(mindstorm, { indent: 4 }))
   const playMode = ref(false)
-
-  watch(() => mindstorm, () => {
-    worldEdit.value = yaml.stringify(mindstorm, { indent: 4 })
-  }, { deep: true })
-
-  function updateMindstorm() {
-    try {
-      const edited = yaml.parse(worldEdit.value, { strict: true })
-      applyPatch(mindstorm, compare(mindstorm, edited))
-    }
-    catch (error) {
-      console.log('ERROR PARSING WORLD EDIT')
-    }
-  }
 
   function newItemName() {
     let index = 1
@@ -206,7 +190,7 @@
             selected: selected === name
           }"
           :selected="selected === name"
-          @click.stop="selected = name"
+          @mousedown.stop="selected = name"
         >
           {{ name }}
         </div>
@@ -219,13 +203,12 @@
         flex: none;
         width: ${codeSidebarWidth}px;
       `"
+      @click.stop
+      @mousedown.stop
     >
-      <textarea
-        id="world-editor"
-        v-focus
-        v-model="worldEdit"
-        @keypress.enter.shift.prevent="updateMindstorm"
-        @blur="updateMindstorm"
+      <YAMLEditor
+        :key="selected"
+        :object="selected ? mindstorm[selected] : mindstorm"
       />
     </div>
   </div>

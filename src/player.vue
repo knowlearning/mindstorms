@@ -144,6 +144,7 @@
       :world="world"
       @drag="handleDrag"
       @click="handleClick"
+      clip
     />
   </div>
 </template>

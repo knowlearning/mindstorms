@@ -1,7 +1,7 @@
 <script setup>
   import Image from './image.vue'
 
-  defineProps({ world: Object })
+  defineProps({ world: Object, clip: Boolean })
   const emit = defineEmits(['click', 'drag'])
 
 </script>
@@ -16,7 +16,8 @@
         <rect x="0" y="0" width="100" height="100" rx="2" />
       </clipPath>
     </defs>
-    <g clip-path="url(#myClip)">
+    <g
+      :clip-path="clip ? 'url(#myClip)' : ''">
       <rect
         x="0"
         y="0"
@@ -31,7 +32,6 @@
       <g
         v-for="{ dimensions, angle, origin, sprite, html }, name in world"
         :key="name"
-        @mousedown.stop="selected = name"
         :transform="`translate(${dimensions.x}, ${dimensions.y}) rotate(${angle}, ${origin.x}, ${origin.y})`"
         v-drag
         @drag="event => emit('drag', { target: name, event })"
@@ -40,7 +40,6 @@
         <Image
           v-if="sprite?.sheet"
           svg
-          :selected="selected === name"
           :uuid="sprite.sheet"
           :dimensions="{...dimensions, x:0, y:0}"
         />

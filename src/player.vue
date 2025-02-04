@@ -28,10 +28,10 @@
   registerAnimationCallback(() => {
     Object
       .entries(world)
-      .forEach(([name1, object]) => {
-        let { dimensions: d1, handlers, collisions } = object
-        if (!initialized.has(object)) {
-          initialized.add(object)
+      .forEach(([name1, object1]) => {
+        let { handlers, collisions } = object1
+        if (!initialized.has(name1)) {
+          initialized.add(name1)
           if (handlers?.initialize) {
             try {
               const event = {}
@@ -65,10 +65,10 @@
 
         Object
           .entries(world)
-          .forEach(([name2, { dimensions: d2 }]) => {
+          .forEach(([name2, object2]) => {
             if (name1 === name2) return
 
-            if (handlers?.collide && checkCollision(d1, d2)) {
+            if (handlers?.collide && checkCollision(object1, object2)) {
               const handler = handlers.collide
               collisionsSeen[name2] = true
               if (collisions[name2]) return

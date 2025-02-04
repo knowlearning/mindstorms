@@ -5,10 +5,10 @@
     uuid: String,
     svg: Boolean,
     selected: Boolean,
-    dimensions: {
-      type: Object,
-      required: false
-    }
+    x: Number,
+    y: Number,
+    width: Number,
+    height: Number
   })
 
   const url = ref(null)
@@ -26,7 +26,10 @@
       <image
         :key="url"
         :href="url"
-        v-bind="dimensions"
+        :x="x"
+        :y="y"
+        :width="width"
+        :height="height"
       />
     </g>
   </template>

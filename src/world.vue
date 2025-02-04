@@ -30,10 +30,12 @@
         rx="2"
       />
       <g
-        v-for="{ dimensions, angle, origin, sprite, html }, name in world"
+        v-for="{ x, y, width, height, angle, origin, sprite, html }, name in world"
         :key="name"
-        :transform="`translate(${dimensions.x}, ${dimensions.y}) rotate(${angle}, ${origin.x}, ${origin.y})`"
-        v-drag
+        :transform="`
+          translate(${x}, ${y})
+          rotate(${angle}, 0, 0)
+        `"        v-drag
         @drag="event => emit('drag', { target: name, event })"
         @click.stop="event => emit('click', { target: name, event })"
       >
@@ -41,14 +43,17 @@
           v-if="sprite?.sheet"
           svg
           :uuid="sprite.sheet"
-          :dimensions="{...dimensions, x:0, y:0}"
+          :x="-width/2"
+          :y="-height/2"
+          :width="width"
+          :height="height"
         />
         <foreignObject
           v-if="html"
-          :x="0"
-          :y="0"
-          :width="dimensions.width"
-          :height="dimensions.height"
+          :x="-width/2"
+          :y="-height/2"
+          :width="width"
+          :height="height"
         >
           <div
             xmlns="http://www.w3.org/1999/xhtml"

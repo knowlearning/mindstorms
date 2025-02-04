@@ -37,17 +37,11 @@
       sprite: {
         sheet: uuid
       },
-      dimensions: {
-        x: 10,
-        y: 10,
-        width: 80,
-        height: 80
-      },
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 80,
       angle: 0,
-      origin: {
-        x: 50,
-        y: 50
-      },
       handlers: {
         click: "alert('Ouch!')"
       }
@@ -61,11 +55,8 @@
   function handleDrag({ detail: { svg_dx, svg_dy } }) {
     const name = selected.value
     if (name && mindstorm[name]) {
-      const { dimensions, origin } = mindstorm[name]
-      dimensions.x += svg_dx
-      dimensions.y += svg_dy
-      origin.x += svg_dx
-      origin.y += svg_dy
+      mindstorm[name].x += svg_dx
+      mindstorm[name].y += svg_dy
     }
   }
 
@@ -78,25 +69,13 @@
   function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
     const name = selected.value
     if (name && mindstorm[name]) {
-      const { dimensions: d, origin: o, angle: a } = mindstorm[name]
+      const { x, y, angle: a } = mindstorm[name]
 
       const prev_svg_x = svg_x - svg_dx
       const prev_svg_y = svg_y - svg_dy
-      const prevWidth = d.width
-      const prevHeight = d.height
 
-      const scale = distance(svg_x+svg_dx, svg_y+svg_dy, o.x, o.y)/distance(svg_x, svg_y, o.x, o.y)
-
-      d.width = Math.max(5, d.width * scale)
-      d.height = Math.max(5, d.height * scale)
-
-      d.x += (prevWidth - d.width)/2
-      d.y += (prevHeight - d.height)/2
-      o.x = d.x + d.width/2
-      o.y = d.y + d.height/2
-
-      const a1 = Math.atan2(svg_y - o.y, svg_x - o.x)
-      const a2 = Math.atan2(prev_svg_y - o.y, prev_svg_x - o.x)
+      const a1 = Math.atan2(svg_y - y, svg_x - x)
+      const a2 = Math.atan2(prev_svg_y - y, prev_svg_x - x)
 
       mindstorm[name].angle += (a1-a2)*180/Math.PI
     }
@@ -142,10 +121,19 @@
         <template v-slot:overlay>
           <g
             v-if="selected"
-            :transform="`rotate(${mindstorm[selected].angle}, ${mindstorm[selected].origin.x}, ${mindstorm[selected].origin.y})`"
+            :transform="`
+              translate(
+                ${mindstorm[selected].x},
+                ${mindstorm[selected].y}
+              )
+              rotate(${mindstorm[selected].angle}, 0, 0)
+            `"
           >
             <rect
-              v-bind="mindstorm[selected].dimensions"
+              :x="-mindstorm[selected].width/2"
+              :y="-mindstorm[selected].height/2"
+              :width="mindstorm[selected].width"
+              :height="mindstorm[selected].height"
               fill="rgba(0,0,0,0)"
               stroke-width="0.5"
               stroke="black"
@@ -155,13 +143,13 @@
               @drag="handleDrag"
             />
             <circle
-              :cx="mindstorm[selected].origin.x"
-              :cy="mindstorm[selected].origin.y"
+              :cx="0"
+              :cy="0"
               :r="1"
             />
             <circle
-              :cx="mindstorm[selected].dimensions.x + mindstorm[selected].dimensions.width"
-              :cy="mindstorm[selected].dimensions.y + mindstorm[selected].dimensions.height"
+              :cx="mindstorm[selected].width/2"
+              :cy="mindstorm[selected].height/2"
               :r="4"
               v-drag
               class="resizer-circle"

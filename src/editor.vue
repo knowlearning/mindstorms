@@ -148,16 +148,33 @@
     </div>
     <div id="mindstorm-editor">
       <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <Image
-          v-for="{ dimensions, angle, origin, sprite }, name in mindstorm"
+        <g
+          v-for="{ dimensions, angle, origin, sprite, html }, name in mindstorm"
           :key="name"
           @mousedown.stop="selected = name"
-          svg
-          :selected="selected === name"
-          :uuid="sprite.sheet"
-          :dimensions="dimensions"
           :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
-        />
+        >
+          <Image
+            v-if="sprite?.sheet"
+            svg
+            :selected="selected === name"
+            :uuid="sprite.sheet"
+            :dimensions="dimensions"
+          />
+          <foreignObject
+            v-if="html"
+            :x="dimensions.x"
+            :y="dimensions.y"
+            :width="dimensions.width"
+            :height="dimensions.height"
+          >
+            <div
+              xmlns="http://www.w3.org/1999/xhtml"
+              v-html="html"
+              style="user-select: none"
+            />
+          </foreignObject>
+        </g>
         <g
           v-if="selected"
           :transform="`rotate(${mindstorm[selected].angle}, ${mindstorm[selected].origin.x}, ${mindstorm[selected].origin.y})`"

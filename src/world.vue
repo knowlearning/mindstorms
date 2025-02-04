@@ -20,10 +20,39 @@
     )
   }
 
+  const initialized = new Set()
+
   registerAnimationCallback(() => {
     Object
       .entries(world)
-      .forEach(([name1, { dimensions: d1, handlers, collisions }]) => {
+      .forEach(([name1, object]) => {
+        let { dimensions: d1, handlers, collisions } = object
+        if (!initialized.has(object)) {
+          initialized.add(object)
+          if (handlers?.initialize) {
+            try {
+              const event = {}
+
+              const scopedHandler = new Function('world', 'event', `with (world, event) { ${handlers.initialize} }`)
+              const result = scopedHandler.bind(world[name1])(world, event)
+            }
+            catch (error) {
+              console.error('Error:', error.message)
+            }
+          }
+        }
+        if (handlers?.step) {
+          try {
+            const event = {}
+
+            const scopedHandler = new Function('world', 'event', `with (world, event) { ${handlers.step} }`)
+            const result = scopedHandler.bind(world[name1])(world, event)
+          }
+          catch (error) {
+            console.error('Error:', error.message)
+          }
+        }
+
         const collisionsSeen = {}
 
         if (!collisions) {
@@ -90,7 +119,9 @@
     }
   }
 
-  function handleDrag(name, { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } }) {
+  function handleDrag(name, event) {
+    const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
+    console.log('DRAG EVENT', event)
     const handler = world?.[name]?.handlers?.drag
     if (handler) {
       try {
@@ -115,40 +146,59 @@
         <rect x="0" y="0" width="100" height="100" rx="2" />
       </clipPath>
     </defs>
-    <rect
-      x="0"
-      y="0"
-      style="pointer-events: none;"
-      width="100"
-      height="100"
-      fill="white"
-      stroke-width="0.5"
-      stroke="black"
-      rx="2"
-    />
     <g clip-path="url(#myClip)">
-      <Image
-        v-for="{ dimensions, angle, origin, sprite }, name in world"
+      <rect
+        x="0"
+        y="0"
+        style="pointer-events: none;"
+        width="100"
+        height="100"
+        fill="white"
+        stroke-width="0.5"
+        stroke="black"
+        rx="2"
+      />
+      <g
+        v-for="{ dimensions, angle, origin, sprite, html }, name in world"
         :key="name"
+        @mousedown.stop="selected = name"
+        :transform="`translate(${dimensions.x}, ${dimensions.y}) rotate(${angle}, ${origin.x}, ${origin.y})`"
         v-drag
         @drag="event => handleDrag(name, event)"
         @click="event => handleClick(name, event)"
-        svg
-        :uuid="sprite.sheet"
-        :dimensions="dimensions"
-        :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
+      >
+        <Image
+          v-if="sprite?.sheet"
+          svg
+          :selected="selected === name"
+          :uuid="sprite.sheet"
+          :dimensions="{...dimensions, x:0, y:0}"
+        />
+        <foreignObject
+          v-if="html"
+          :x="0"
+          :y="0"
+          :width="dimensions.width"
+          :height="dimensions.height"
+        >
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            v-html="html"
+            style="user-select: none"
+          />
+        </foreignObject>
+      </g>
+      <rect
+        x="0"
+        y="0"
+        style="pointer-events: none;"
+        width="100"
+        height="100"
+        fill="none"
+        stroke-width="0.5"
+        stroke="black"
+        rx="2"
       />
     </g>
-    <rect
-      x="0"
-      y="0"
-      style="pointer-events: none;"
-      width="100"
-      height="100"
-      fill="none"
-      stroke-width="0.5"
-      stroke="black"
-      rx="2"
-    />
   </svg>
 </template>

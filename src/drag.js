@@ -3,6 +3,8 @@ export default {
     let startX, startY, lastX, lastY
     let isDragging = false
 
+    el.addEventListener('dragstart', e => e.preventDefault())
+
     const handleStart = (event) => {
       if (event.type === 'mousedown' || event.touches) {
         isDragging = true

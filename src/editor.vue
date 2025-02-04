@@ -4,8 +4,8 @@
   import { compare, applyPatch } from 'fast-json-patch'
   import * as yaml from 'yaml'
   import { useKeyboardEvents } from './keyboard.js'
+  import World from './world.vue'
   import Button from './button.vue'
-  import Image from './image.vue'
 
   const props = defineProps({
     uuid: String
@@ -68,6 +68,10 @@
         click: "alert('Ouch!')"
       }
     }
+  }
+
+  function handleClick({ target, event }) {
+    selected.value = target
   }
 
   function handleDrag({ detail: { svg_dx, svg_dy } }) {
@@ -147,75 +151,42 @@
       </div>
     </div>
     <div id="mindstorm-editor">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <g
-          v-for="{ dimensions, angle, origin, sprite, html }, name in mindstorm"
-          :key="name"
-          @mousedown.stop="selected = name"
-          :transform="`rotate(${angle}, ${origin.x}, ${origin.y})`"
-        >
-          <Image
-            v-if="sprite?.sheet"
-            svg
-            :selected="selected === name"
-            :uuid="sprite.sheet"
-            :dimensions="dimensions"
-          />
-          <foreignObject
-            v-if="html"
-            :x="dimensions.x"
-            :y="dimensions.y"
-            :width="dimensions.width"
-            :height="dimensions.height"
+      <World
+        :world="mindstorm"
+        @click="handleClick"
+      >
+        <template v-slot:overlay>
+          <g
+            v-if="selected"
+            :transform="`rotate(${mindstorm[selected].angle}, ${mindstorm[selected].origin.x}, ${mindstorm[selected].origin.y})`"
           >
-            <div
-              xmlns="http://www.w3.org/1999/xhtml"
-              v-html="html"
-              style="user-select: none"
+            <rect
+              v-bind="mindstorm[selected].dimensions"
+              fill="rgba(0,0,0,0)"
+              stroke-width="0.5"
+              stroke="black"
+              stroke-dasharray="1,1"
+              v-drag
+              @mousedown.stop
+              @drag="handleDrag"
             />
-          </foreignObject>
-        </g>
-        <g
-          v-if="selected"
-          :transform="`rotate(${mindstorm[selected].angle}, ${mindstorm[selected].origin.x}, ${mindstorm[selected].origin.y})`"
-        >
-          <rect
-            v-bind="mindstorm[selected].dimensions"
-            fill="rgba(0,0,0,0)"
-            stroke-width="0.5"
-            stroke="black"
-            stroke-dasharray="1,1"
-            v-drag
-            @mousedown.stop
-            @drag="handleDrag"
-          />
-          <circle
-            :cx="mindstorm[selected].origin.x"
-            :cy="mindstorm[selected].origin.y"
-            :r="1"
-          />
-          <circle
-            :cx="mindstorm[selected].dimensions.x + mindstorm[selected].dimensions.width"
-            :cy="mindstorm[selected].dimensions.y + mindstorm[selected].dimensions.height"
-            :r="4"
-            v-drag
-            class="resizer-circle"
-            @mousedown.stop
-            @drag="handleResizeAndRotate"
-          />
-        </g>
-        <rect
-          x="0"
-          y="0"
-          style="pointer-events: none;"
-          width="100"
-          height="100"
-          fill="none"
-          stroke-width="0.5"
-          stroke="black"
-          rx="2"
-        />
-      </svg>
+            <circle
+              :cx="mindstorm[selected].origin.x"
+              :cy="mindstorm[selected].origin.y"
+              :r="1"
+            />
+            <circle
+              :cx="mindstorm[selected].dimensions.x + mindstorm[selected].dimensions.width"
+              :cy="mindstorm[selected].dimensions.y + mindstorm[selected].dimensions.height"
+              :r="4"
+              v-drag
+              class="resizer-circle"
+              @mousedown.stop
+              @drag="handleResizeAndRotate"
+            />
+          </g>
+        </template>
+      </World>
     </div>
     <div id="world-sidebar">
       <div id="world-sidebar-header">

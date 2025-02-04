@@ -35,7 +35,7 @@
         :transform="`translate(${dimensions.x}, ${dimensions.y}) rotate(${angle}, ${origin.x}, ${origin.y})`"
         v-drag
         @drag="event => emit('drag', { target: name, event })"
-        @click="event => emit('click', { target: name, event })"
+        @click.stop="event => emit('click', { target: name, event })"
       >
         <Image
           v-if="sprite?.sheet"
@@ -69,6 +69,7 @@
         stroke="black"
         rx="2"
       />
+      <slot name="overlay"></slot>
     </g>
   </svg>
 </template>

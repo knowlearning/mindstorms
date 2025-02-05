@@ -120,10 +120,18 @@
   Object
     .entries(world)
     .forEach(([ name, object ]) => {
-      const { x, y, width, height, angle } = object
-      const body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: object.static, angle: angle*Math.PI/180 })
-      Matter.Composite.add(engine.world, body)
-      matterIdToObject.set(body.id, object)
+      const { x, y, width, height, angle, parts={} } = object
+      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180 })
+      const subBodies = []
+
+      const comboBody = Matter.Body.create({
+        parts: [body, ...subBodies],
+        isStatic: object.static,
+        angle: angle*Math.PI/180
+      })
+
+      Matter.World.add(engine.world, comboBody)
+      matterIdToObject.set(comboBody.id, object)
     })
 
   Matter.Events.on(engine, 'afterUpdate', function() {
@@ -136,6 +144,8 @@
       }
 
       const bodyAngleInDegrees = body.angle*180/Math.PI
+
+      console.log(bodyAngleInDegrees)
 
       if (Math.abs(bodyAngleInDegrees - o.angle) > 1) {
         o.angle = bodyAngleInDegrees

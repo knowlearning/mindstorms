@@ -1,9 +1,11 @@
 <script setup>
   import * as Matter from 'matter-js'
   import World from './world.vue'
-  import { ref, reactive } from 'vue'
+  import { ref, reactive, watch } from 'vue'
   import { useAnimationLoop } from './animation-loop.js'
   import { useKeyboardEvents } from './keyboard.js'
+
+  const canvas = ref(null)
 
   const engine = Matter.Engine.create()
 
@@ -121,22 +123,44 @@
     .entries(world)
     .forEach(([ name, object ]) => {
       const { x, y, width, height, angle, parts={} } = object
-      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180 })
-      const subBodies = []
+      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180, isStatic: object.static })
 
-      const comboBody = Matter.Body.create({
-        parts: [body, ...subBodies],
-        isStatic: object.static,
-        angle: angle*Math.PI/180
+      Object.values(parts).forEach(part => {
+        const rotatedPoint = Matter.Vector.rotate({ x: part.x, y: part.y }, angle*Math.PI/180)
+        const partPosition = Matter.Vector.add({ x, y }, rotatedPoint)
+        const partBody = Matter.Bodies.rectangle(
+          partPosition.x,
+          partPosition.y,
+          part.width,
+          part.height,
+          {
+            angle: (angle + part.angle)*Math.PI/180
+          }
+        )
+
+        const constraint = Matter.Constraint.create({
+          bodyA: body,
+          bodyB: partBody,
+          pointA: partPosition,
+          pointB: { x: 0, y: 0 },
+          stiffness: 1,
+          length: 0
+        })
+
+        //  TODO: add second constraint to "pin" the body
+        Matter.World.add(engine.world, partBody)
+        Matter.World.add(engine.world, constraint)
       })
 
-      Matter.World.add(engine.world, comboBody)
-      matterIdToObject.set(comboBody.id, object)
+      Matter.World.add(engine.world, body)
+      matterIdToObject.set(body.id, object)
     })
 
   Matter.Events.on(engine, 'afterUpdate', function() {
     Matter.Composite.allBodies(engine.world).forEach(function(body) {
       const o = matterIdToObject.get(body.id)
+      if (!o) return // this is the case when the body is a part of the object
+
       const p = body.position
       if (distance(o, p) > 0.1) {
         o.x = p.x
@@ -145,12 +169,24 @@
 
       const bodyAngleInDegrees = body.angle*180/Math.PI
 
-      console.log(bodyAngleInDegrees)
-
       if (Math.abs(bodyAngleInDegrees - o.angle) > 1) {
         o.angle = bodyAngleInDegrees
       }
     })
+  })
+
+  watch(() => canvas.value, () => {
+    const render = Matter.Render.create({
+      canvas: canvas.value,
+      engine,
+      options: {
+        wireframes: true,
+        background: '#f4f4f4',
+        width: 100,
+        height: 100
+      }
+    })
+    Matter.Render.run(render)
   })
 
 
@@ -198,6 +234,9 @@
       @click="handleClick"
       clip
     />
+    <canvas
+      ref="canvas"
+    />
   </div>
 </template>
 
@@ -213,8 +252,8 @@
   }
 
   #mindstorm-player svg {
-    width: 99%;
-    height: 99%;
+    width: 98%;
+    height: 98%;
     display: block;
     overflow: visible;
   }

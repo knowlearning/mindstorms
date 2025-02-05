@@ -88,7 +88,21 @@
 
       o.width *= scaleFactor
       o.height *= scaleFactor
+
+      scaleParts(o.parts || {}, scaleFactor)
     }
+  }
+
+  function scaleParts(parts, scale) {
+    Object
+      .values(parts || {})
+      .forEach(part => {
+        part.x *= scale
+        part.y *= scale
+        part.width *= scale
+        part.height *= scale
+        scaleParts(part.parts)
+      })
   }
 
   function removeSelected() {

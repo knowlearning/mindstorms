@@ -1,12 +1,9 @@
 <script setup>
-  import Image from './image.vue'
+  import Item from './item.vue'
 
   defineProps({ world: Object, clip: Boolean })
-  const emit = defineEmits(['click', 'drag', 'resize'])
 
-  function emitResize(target, event) {
-    emit('resize', { target, event })
-  }
+  const emit = defineEmits(['click', 'drag', 'resize'])
 
 </script>
 
@@ -21,7 +18,8 @@
       </clipPath>
     </defs>
     <g
-      :clip-path="clip ? 'url(#myClip)' : ''">
+      :clip-path="clip ? 'url(#myClip)' : ''"
+    >
       <rect
         x="0"
         y="0"
@@ -33,40 +31,15 @@
         stroke="black"
         rx="2"
       />
-      <g
-        v-for="{ x, y, width, height, angle, origin, sprite, html }, name in world"
+      <Item
+        v-for="item, name in world"
         :key="name"
-        :transform="`
-          translate(${x}, ${y})
-          rotate(${angle}, 0, 0)
-        `"        v-drag
+        :item="item"
+        v-drag
         @drag="event => emit('drag', { target: name, event })"
         @click.stop="event => emit('click', { target: name, event })"
-      >
-        <Image
-          v-if="sprite?.sheet"
-          svg
-          :uuid="sprite.sheet"
-          :x="-width/2"
-          :y="-height/2"
-          :width="width"
-          :height="height"
-          @resize="emitResize(name, $event)"
-        />
-        <foreignObject
-          v-if="html"
-          :x="-width/2"
-          :y="-height/2"
-          :width="width"
-          :height="height"
-        >
-          <div
-            xmlns="http://www.w3.org/1999/xhtml"
-            v-html="html"
-            style="user-select: none"
-          />
-        </foreignObject>
-      </g>
+        @resize="event => emit('resize', { target: name, event })"
+      />
       <rect
         x="0"
         y="0"

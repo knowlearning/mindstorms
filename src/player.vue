@@ -115,10 +115,6 @@
   Object.keys(world).forEach(key => delete world[key])
   Object.assign(world, mindstorm)
 
-
-
-
-
   const matterIdToObject = new Map()
 
   Object
@@ -136,6 +132,12 @@
       const p = body.position
       if (Math.abs(o.x-p.x) > 0.5) o.x = p.x
       if (Math.abs(o.y-p.y) > 0.5) o.y = p.y
+
+      const bodyAngleInDegrees = body.angle*180/Math.PI
+
+      if (Math.abs(bodyAngleInDegrees - o.angle) > 1) {
+        o.angle = bodyAngleInDegrees
+      }
     })
   })
 

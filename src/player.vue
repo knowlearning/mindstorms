@@ -123,14 +123,15 @@
     .entries(world)
     .forEach(([ name, object ]) => {
       const { x, y, width, height, angle, parts={} } = object
-      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180, isStatic: object.static })
+      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180 })
+
+      const bodies = [body]
 
       Object.values(parts).forEach(part => {
         const rotatedPoint = Matter.Vector.rotate({ x: part.x, y: part.y }, angle*Math.PI/180)
-        const partPosition = Matter.Vector.add({ x, y }, rotatedPoint)
         const partBody = Matter.Bodies.rectangle(
-          partPosition.x,
-          partPosition.y,
+          rotatedPoint.x + object.x,
+          rotatedPoint.y + object.y,
           part.width,
           part.height,
           {
@@ -138,22 +139,17 @@
           }
         )
 
-        const constraint = Matter.Constraint.create({
-          bodyA: body,
-          bodyB: partBody,
-          pointA: partPosition,
-          pointB: { x: 0, y: 0 },
-          stiffness: 1,
-          length: 0
-        })
-
-        //  TODO: add second constraint to "pin" the body
-        Matter.World.add(engine.world, partBody)
-        Matter.World.add(engine.world, constraint)
+        bodies.push(partBody)
       })
 
-      Matter.World.add(engine.world, body)
-      matterIdToObject.set(body.id, object)
+      const compositeBody = Matter.Body.create({
+        parts: bodies,
+        angle: angle*Math.PI/180,
+        isStatic: object.static
+      })
+
+      Matter.World.add(engine.world, compositeBody)
+      matterIdToObject.set(compositeBody.id, object)
     })
 
   Matter.Events.on(engine, 'afterUpdate', function() {
@@ -181,7 +177,6 @@
       engine,
       options: {
         wireframes: true,
-        background: '#f4f4f4',
         width: 100,
         height: 100
       }
@@ -256,5 +251,13 @@
     height: 98%;
     display: block;
     overflow: visible;
+  }
+
+  #mindstorm-player canvas {
+    height: 98%;
+    margin: 1%;
+    position: absolute;
+    opacity: 0.25;
+    pointer-events: none;
   }
 </style>

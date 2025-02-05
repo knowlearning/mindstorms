@@ -219,6 +219,31 @@
     return Math.sqrt(x*x + y*y)
   }
 
+
+
+
+
+
+
+
+
+
+Matter.Events.on(engine, 'collisionStart', event => {
+    event.pairs.forEach(pair => {
+        console.log('collision start!', pair.bodyA, pair.bodyB)
+    })
+})
+
+Matter.Events.on(engine, 'collisionStart', event => {
+    event.pairs.forEach(pair => {
+        console.log('collision end!', pair.bodyA, pair.bodyB)
+    })
+})
+
+
+
+
+
 </script>
 
 <template>

@@ -2,7 +2,11 @@
   import Image from './image.vue'
 
   defineProps({ world: Object, clip: Boolean })
-  const emit = defineEmits(['click', 'drag'])
+  const emit = defineEmits(['click', 'drag', 'resize'])
+
+  function emitResize(target, event) {
+    emit('resize', { target, event })
+  }
 
 </script>
 
@@ -47,6 +51,7 @@
           :y="-height/2"
           :width="width"
           :height="height"
+          @resize="emitResize(name, $event)"
         />
         <foreignObject
           v-if="html"

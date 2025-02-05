@@ -11,27 +11,37 @@
     height: Number
   })
 
-  const url = ref(null)
+  const emit = defineEmits(['resize'])
 
+  const url = ref(null)
   Agent
     .download(props.uuid)
     .url()
-    .then(r => url.value = r)
+    .then(u => {
+      const img = new Image()
+      img.src = u
+      img.onload = () => {
+        emit('resize', {
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        })
+      }
+      url.value = u
+    })
+
 
 </script>
 
 <template>
   <template v-if="svg">
-    <g>
-      <image
-        :key="url"
-        :href="url"
-        :x="x"
-        :y="y"
-        :width="width"
-        :height="height"
-      />
-    </g>
+    <image
+      :key="url"
+      :href="url"
+      :x="x"
+      :y="y"
+      :width="width"
+      :height="height"
+    />
   </template>
   <img
     v-else

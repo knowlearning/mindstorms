@@ -92,6 +92,17 @@
     return Math.atan2(deltaY, deltaX)
   }
 
+  function handleResize({ target, event }) {
+    const eventRatio = event.width/event.height
+    const targetRatio = mindstorm[target].width/mindstorm[target].height
+    if (eventRatio > targetRatio) {
+      mindstorm[target].height *= eventRatio/targetRatio
+    }
+    else if (eventRatio < targetRatio) {
+      mindstorm[target].width *= eventRatio/targetRatio
+    }
+  }
+
 </script>
 
 <template>
@@ -117,6 +128,7 @@
       <World
         :world="mindstorm"
         @click="handleClick"
+        @resize="handleResize"
       >
         <template v-slot:overlay>
           <g

@@ -114,7 +114,7 @@
     const eventRatio = event.width/event.height
     const targetRatio = mindstorm[target].width/mindstorm[target].height
     if (eventRatio > targetRatio) {
-      mindstorm[target].height *= eventRatio/targetRatio
+      mindstorm[target].height *= targetRatio/eventRatio
     }
     else if (eventRatio < targetRatio) {
       mindstorm[target].width *= eventRatio/targetRatio

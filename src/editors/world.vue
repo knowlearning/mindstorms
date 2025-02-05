@@ -41,10 +41,7 @@
       y: 10,
       width: 80,
       height: 80,
-      angle: 0,
-      handlers: {
-        click: "alert('Ouch!')"
-      }
+      angle: 0
     }
   }
 

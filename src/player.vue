@@ -37,14 +37,14 @@
     Object
       .entries(world)
       .forEach(([name1, object1]) => {
-        let { handlers, collisions } = object1
+        let { initialize, step, collide, uncollide, collisions } = object1
         if (!initialized.has(name1)) {
           initialized.add(name1)
-          if (handlers?.initialize) {
+          if (initialize) {
             try {
               const event = {}
 
-              const scopedHandler = new Function('world', 'event', `with (world, event) { ${handlers.initialize} }`)
+              const scopedHandler = new Function('world', 'event', `with (world, event) { ${initialize} }`)
               const result = scopedHandler.bind(world[name1])(world, event)
             }
             catch (error) {
@@ -52,11 +52,11 @@
             }
           }
         }
-        if (handlers?.step) {
+        if (step) {
           try {
             const event = {}
 
-            const scopedHandler = new Function('world', 'event', `with (world, event) { ${handlers.step} }`)
+            const scopedHandler = new Function('world', 'event', `with (world, event) { ${step} }`)
             const result = scopedHandler.bind(world[name1])(world, event)
           }
           catch (error) {
@@ -76,8 +76,7 @@
           .forEach(([name2, object2]) => {
             if (name1 === name2) return
 
-            if (handlers?.collide && checkCollision(object1, object2)) {
-              const handler = handlers.collide
+            if (collide && checkCollision(object1, object2)) {
               collisionsSeen[name2] = true
               if (collisions[name2]) return
 
@@ -85,7 +84,7 @@
               try {
                 const event = { other: name2 }
 
-                const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+                const scopedHandler = new Function('world', 'event', `with (world, event) { ${collide} }`)
                 const result = scopedHandler.bind(world[name])(world, event)
               }
               catch (error) {
@@ -98,11 +97,10 @@
           .forEach(name => {
             if (!collisionsSeen[name]) {
               delete collisions[name]
-              if (handlers?.uncollide) {
-                const handler = handlers.uncollide
+              if (uncollide) {
                 try {
                   const event = { other: name }
-                  const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+                  const scopedHandler = new Function('world', 'event', `with (world, event) { ${uncollide} }`)
                   const result = scopedHandler.bind(world[name])(world, event)
                 }
                 catch (error) {
@@ -187,7 +185,7 @@
 
 
   function handleClick({target: name, event: rawEvent}) {
-    const handler = world?.[name]?.handlers?.click
+    const handler = world?.[name]?.click
     if (handler) {
       try {
         const event = {}
@@ -201,7 +199,7 @@
 
   function handleDrag({target: name, event }) {
     const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
-    const handler = world?.[name]?.handlers?.drag
+    const handler = world?.[name]?.drag
     if (handler) {
       try {
         const event = { x, y, dx, dy }

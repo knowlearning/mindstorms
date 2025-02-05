@@ -69,7 +69,8 @@
   function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
     const name = selected.value
     if (name && mindstorm[name]) {
-      const { x, y, angle: a } = mindstorm[name]
+      const o = mindstorm[name]
+      const { x, y, angle: a, width, height } = o
 
       const prev_svg_x = svg_x - svg_dx
       const prev_svg_y = svg_y - svg_dy
@@ -78,18 +79,21 @@
       const a2 = Math.atan2(prev_svg_y - y, prev_svg_x - x)
 
       mindstorm[name].angle += (a1-a2)*180/Math.PI
+      const aRad = mindstorm[name].angle/180*Math.PI
+
+      const theta = Math.atan2(svg_dy, svg_dx)
+      const dOnDiagonal = distance(0, 0, svg_dx, svg_dy) * Math.cos(theta - aRad + Math.atan2(-height, width))
+
+      const scaleFactor = 1 + dOnDiagonal/(distance(0, 0, width, height)/2)
+
+      o.width *= scaleFactor
+      o.height *= scaleFactor
     }
   }
 
   function removeSelected() {
     delete mindstorm[selected.value]
     selected.value = null
-  }
-
-  function calculateAngleAdjustment(x, y, centerX, centerY) {
-    const deltaX = x - centerX
-    const deltaY = y - centerY
-    return Math.atan2(deltaY, deltaX)
   }
 
   function handleResize({ target, event }) {

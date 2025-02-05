@@ -130,8 +130,10 @@
     Matter.Composite.allBodies(engine.world).forEach(function(body) {
       const o = matterIdToObject.get(body.id)
       const p = body.position
-      if (Math.abs(o.x-p.x) > 0.5) o.x = p.x
-      if (Math.abs(o.y-p.y) > 0.5) o.y = p.y
+      if (distance(o, p) > 0.1) {
+        o.x = p.x
+        o.y = p.y
+      }
 
       const bodyAngleInDegrees = body.angle*180/Math.PI
 
@@ -168,6 +170,12 @@
         console.error('Error:', error.message)
       }
     }
+  }
+
+  function distance(a, b) {
+    const x = a.x-b.x
+    const y = a.y-b.y
+    return Math.sqrt(x*x + y*y)
   }
 
 </script>

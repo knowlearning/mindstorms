@@ -1,5 +1,5 @@
 <script setup>
-  import Image from './image.vue'
+  import Sprite from './sprite.vue'
 
   defineProps({ item: Object })
   const emit = defineEmits(['resize'])
@@ -12,10 +12,10 @@
       rotate(${item.angle}, 0, 0)
     `"
   >
-    <Image
-      v-if="item.sprite?.sheet"
+    <Sprite
+      v-if="item.sprite"
       svg
-      :uuid="item.sprite.sheet"
+      :uuid="item.sprite"
       :x="-item.width/2"
       :y="-item.height/2"
       :width="item.width"

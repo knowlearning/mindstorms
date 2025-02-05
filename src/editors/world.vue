@@ -32,11 +32,10 @@
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
     const name = newItemName()
+    //  TODO: sprite should be a whole sprite object...
     selected.value = name
     mindstorm[name] = {
-      sprite: {
-        sheet: uuid
-      },
+      sprite: uuid,
       x: 10,
       y: 10,
       width: 80,

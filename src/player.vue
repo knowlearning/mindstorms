@@ -1,8 +1,14 @@
 <script setup>
+  import * as Matter from 'matter-js'
   import World from './world.vue'
   import { ref, reactive } from 'vue'
   import { useAnimationLoop } from './animation-loop.js'
   import { useKeyboardEvents } from './keyboard.js'
+
+  const engine = Matter.Engine.create()
+
+  const runner = Matter.Runner.create()
+  Matter.Runner.run(runner, engine)
 
   const { registerKey } = useKeyboardEvents()
   const { registerAnimationCallback }  = useAnimationLoop()
@@ -108,6 +114,32 @@
 
   Object.keys(world).forEach(key => delete world[key])
   Object.assign(world, mindstorm)
+
+
+
+
+
+  const matterIdToObject = new Map()
+
+  Object
+    .entries(world)
+    .forEach(([ name, object ]) => {
+      const { x, y, width, height, angle } = object
+      const body = Matter.Bodies.rectangle(x, y, width, height, { isStatic: object.static, angle: angle*Math.PI/180 })
+      Matter.Composite.add(engine.world, body)
+      matterIdToObject.set(body.id, object)
+    })
+
+  Matter.Events.on(engine, 'afterUpdate', function() {
+    Matter.Composite.allBodies(engine.world).forEach(function(body) {
+      const o = matterIdToObject.get(body.id)
+      const p = body.position
+      if (Math.abs(o.x-p.x) > 0.5) o.x = p.x
+      if (Math.abs(o.y-p.y) > 0.5) o.y = p.y
+    })
+  })
+
+
 
   function handleClick({target: name, event: rawEvent}) {
     const handler = world?.[name]?.handlers?.click

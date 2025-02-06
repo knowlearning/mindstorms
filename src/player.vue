@@ -156,7 +156,13 @@
       if (!o) return // this is the case when the body is a part of the object
 
       const p = body.position
-      if (distance(o, p) > 0.1) {
+
+      if (!!o.static !== !!body.isStatic) {
+        Matter.Body.setStatic(body, !!o.static)
+      }
+
+      if (o.static) Matter.Body.setPosition(body, o)
+      else if (distance(o, p) > 0.1) {
         o.x = p.x
         o.y = p.y
       }

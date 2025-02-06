@@ -22,15 +22,6 @@
   const mindstorm = JSON.parse(JSON.stringify(await Agent.state(props.uuid)))
   const world = reactive(await Agent.state(`run-state/${props.uuid}`))
 
-  function checkCollision(rect1, rect2) {
-    return (
-        rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y
-    )
-  }
-
   const initialized = new Set()
 
   registerAnimationCallback(() => {
@@ -63,52 +54,6 @@
             console.error('Error:', error.message)
           }
         }
-
-        const collisionsSeen = {}
-
-        if (!collisions) {
-          world[name1].collisions = {}
-          collisions = world[name1].collisions
-        }
-
-        Object
-          .entries(world)
-          .forEach(([name2, object2]) => {
-            if (name1 === name2) return
-
-            if (collide && checkCollision(object1, object2)) {
-              collisionsSeen[name2] = true
-              if (collisions[name2]) return
-
-              collisions[name2] = { someCollisionData: false }
-              try {
-                const event = { other: name2 }
-
-                const scopedHandler = new Function('world', 'event', `with (world, event) { ${collide} }`)
-                const result = scopedHandler.bind(world[name])(world, event)
-              }
-              catch (error) {
-                console.error('Error:', error.message)
-              }
-            }
-          })
-        Object
-          .keys(collisions)
-          .forEach(name => {
-            if (!collisionsSeen[name]) {
-              delete collisions[name]
-              if (uncollide) {
-                try {
-                  const event = { other: name }
-                  const scopedHandler = new Function('world', 'event', `with (world, event) { ${uncollide} }`)
-                  const result = scopedHandler.bind(world[name])(world, event)
-                }
-                catch (error) {
-                  console.error('Error:', error.message)
-                }
-              }
-            }
-          })
       })
   })
 
@@ -257,18 +202,39 @@
 
 
 
-
+function handleEvent(object, name, event) {
+  if (object?.[name]) {
+    try {
+      const scopedHandler = new Function('world', 'event', `with (world, event) { ${object?.[name]} }`)
+      const result = scopedHandler.bind(world[name])(world, event)
+    } catch (error) {
+      console.error('Error:', error.message)
+    }
+  }
+}
 
 Matter.Events.on(engine, 'collisionStart', event => {
-    event.pairs.forEach(pair => {
-        console.log('collision start!', pair.bodyA, pair.bodyB)
-    })
+  event.pairs.forEach(pair => {
+    const objectA = matterIdToObject.get(pair.bodyA.parent.id)
+    const objectB = matterIdToObject.get(pair.bodyB.parent.id)
+
+    if (objectA && objectB) {
+      handleEvent(objectA, 'collide', { other: objectB })
+      handleEvent(objectB, 'collide', { other: objectA })
+    }
+  })
 })
 
-Matter.Events.on(engine, 'collisionStart', event => {
-    event.pairs.forEach(pair => {
-        console.log('collision end!', pair.bodyA, pair.bodyB)
-    })
+Matter.Events.on(engine, 'collisionEnd', event => {
+  event.pairs.forEach(pair => {
+    const objectA = matterIdToObject.get(pair.bodyA.parent.id)
+    const objectB = matterIdToObject.get(pair.bodyB.parent.id)
+
+    if (objectA && objectB) {
+      handleEvent(objectA, 'uncollide', { other: objectB })
+      handleEvent(objectB, 'uncollide', { other: objectA })
+    }
+  })
 })
 
 

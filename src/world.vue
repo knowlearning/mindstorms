@@ -3,7 +3,7 @@
 
   defineProps({ world: Object, clip: Boolean })
 
-  const emit = defineEmits(['click', 'drag', 'resize'])
+  const emit = defineEmits(['click', 'drag', 'dragstart', 'dragstop', 'resize'])
 
 </script>
 
@@ -37,6 +37,8 @@
         :item="item"
         v-drag
         @drag="event => emit('drag', { target: name, event })"
+        @dragstart="event => emit('dragstart', { target: name, event })"
+        @dragstop="event => emit('dragstop', { target: name, event })"
         @click.stop="event => emit('click', { target: name, event })"
         @resize="event => emit('resize', { target: name, event })"
       />

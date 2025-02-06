@@ -217,6 +217,33 @@
     }
   }
 
+  function handleDragstart({target: name, event }) {
+    const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
+    const handler = world?.[name]?.dragstart
+    if (handler) {
+      try {
+        const event = { x, y, dx, dy }
+        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+        const result = scopedHandler.bind(world[name])(world, event)
+      } catch (error) {
+        console.error('Error:', error.message)
+      }
+    }
+  }
+
+  function handleDragstop({target: name, event }) {
+    const handler = world?.[name]?.dragstop
+    if (handler) {
+      try {
+        const event = {}
+        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
+        const result = scopedHandler.bind(world[name])(world, event)
+      } catch (error) {
+        console.error('Error:', error.message)
+      }
+    }
+  }
+
   function distance(a, b) {
     const x = a.x-b.x
     const y = a.y-b.y
@@ -255,6 +282,8 @@ Matter.Events.on(engine, 'collisionStart', event => {
     <World
       :world="world"
       @drag="handleDrag"
+      @dragstart="handleDragstart"
+      @dragstop="handleDragstop"
       @click="handleClick"
       clip
     />

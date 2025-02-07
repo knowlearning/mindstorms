@@ -188,7 +188,7 @@
         @resize="handleResize"
         @dragstart="handleDragstart"
         @drag="handleDrag"
-        @dragstop="handleDragstop"
+        @dragend="handleDragstop"
       >
         <template v-slot:overlay>
           <g

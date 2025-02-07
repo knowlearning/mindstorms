@@ -177,7 +177,7 @@
   }
 
   function handleDragstop({target: name, event }) {
-    const handler = world.parts?.[name]?.dragstop
+    const handler = world.parts?.[name]?.dragend
     if (handler) {
       try {
         const event = {}
@@ -249,7 +249,7 @@ Matter.Events.on(engine, 'collisionEnd', event => {
       :world="world"
       @drag="handleDrag"
       @dragstart="handleDragstart"
-      @dragstop="handleDragstop"
+      @dragend="handleDragstop"
       @click="handleClick"
       clip
     />

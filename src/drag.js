@@ -79,7 +79,7 @@ export default {
 
       const detail = calculatePoints(event)
 
-      el.dispatchEvent(new CustomEvent('dragstop', { detail }))
+      el.dispatchEvent(new CustomEvent('dragend', { detail }))
       document.removeEventListener('mousemove', handleMove)
       document.removeEventListener('touchmove', handleMove)
       document.removeEventListener('mouseup', handleEnd)

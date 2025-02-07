@@ -103,7 +103,10 @@
   }
 
   function handleDragend({ event: { detail } }) {
-    currentConstraint = null
+    if (mode.value === MODES.CONSTRAINT && currentConstraint) {
+      mode.value = null
+      currentConstraint = null
+    }
   }
 
 
@@ -295,6 +298,9 @@
           <g
             v-for="{from, to}, name in mindstorm.constraints"
             :key="name"
+            :style="{
+              'pointer-events': currentConstraint ? 'none' : 'auto'
+            }"
           >
             <line
               :x1="from.x"

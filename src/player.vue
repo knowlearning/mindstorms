@@ -26,7 +26,7 @@
 
   registerAnimationCallback(() => {
     Object
-      .entries(world)
+      .entries(world.parts)
       .forEach(([name1, object1]) => {
         let { initialize, step, collide, uncollide, collisions } = object1
         if (!initialized.has(name1)) {
@@ -36,7 +36,7 @@
               const event = {}
 
               const scopedHandler = new Function('world', 'event', `with (world, event) { ${initialize} }`)
-              const result = scopedHandler.bind(world[name1])(world, event)
+              const result = scopedHandler.bind(world.parts[name1])(world, event)
             }
             catch (error) {
               console.error('Error:', error.message)
@@ -48,7 +48,7 @@
             const event = {}
 
             const scopedHandler = new Function('world', 'event', `with (world, event) { ${step} }`)
-            const result = scopedHandler.bind(world[name1])(world, event)
+            const result = scopedHandler.bind(world.parts[name1])(world, event)
           }
           catch (error) {
             console.error('Error:', error.message)
@@ -63,7 +63,7 @@
   const matterIdToObject = new Map()
 
   Object
-    .entries(world)
+    .entries(world.parts)
     .forEach(([ name, object ]) => {
       const { x, y, width, height, angle, parts={} } = object
       const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180 })
@@ -136,12 +136,12 @@
 
 
   function handleClick({target: name, event: rawEvent}) {
-    const handler = world?.[name]?.click
+    const handler = world.parts?.[name]?.click
     if (handler) {
       try {
         const event = {}
         const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world[name])(world, event)
+        const result = scopedHandler.bind(world.parts[name])(world, event)
       } catch (error) {
         console.error('Error:', error.message)
       }
@@ -150,12 +150,12 @@
 
   function handleDrag({target: name, event }) {
     const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
-    const handler = world?.[name]?.drag
+    const handler = world.parts?.[name]?.drag
     if (handler) {
       try {
         const event = { x, y, dx, dy }
         const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world[name])(world, event)
+        const result = scopedHandler.bind(world.parts[name])(world, event)
       } catch (error) {
         console.error('Error:', error.message)
       }
@@ -164,12 +164,12 @@
 
   function handleDragstart({target: name, event }) {
     const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
-    const handler = world?.[name]?.dragstart
+    const handler = world.parts?.[name]?.dragstart
     if (handler) {
       try {
         const event = { x, y, dx, dy }
         const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world[name])(world, event)
+        const result = scopedHandler.bind(world.parts[name])(world, event)
       } catch (error) {
         console.error('Error:', error.message)
       }
@@ -177,12 +177,12 @@
   }
 
   function handleDragstop({target: name, event }) {
-    const handler = world?.[name]?.dragstop
+    const handler = world.parts?.[name]?.dragstop
     if (handler) {
       try {
         const event = {}
         const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world[name])(world, event)
+        const result = scopedHandler.bind(world.parts[name])(world, event)
       } catch (error) {
         console.error('Error:', error.message)
       }
@@ -203,10 +203,10 @@
 
 
 function handleEvent(object, name, event) {
-  if (object?.[name]) {
+  if (object.parts?.[name]) {
     try {
       const scopedHandler = new Function('world', 'event', `with (world, event) { ${object?.[name]} }`)
-      const result = scopedHandler.bind(world[name])(world, event)
+      const result = scopedHandler.bind(object)(world, event)
     } catch (error) {
       console.error('Error:', error.message)
     }

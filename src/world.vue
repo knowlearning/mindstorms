@@ -32,7 +32,7 @@
         rx="2"
       />
       <Item
-        v-for="item, name in world"
+        v-for="item, name in world.parts"
         :key="name"
         :item="item"
         v-drag

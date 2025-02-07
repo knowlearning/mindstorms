@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, reactive, watch } from 'vue'
+  import { ref, reactive, watch, computed } from 'vue'
   import { vueEmbedComponent } from '@knowlearning/agents/vue.js'
   import { useKeyboardEvents } from '../keyboard.js'
   import World from '../world.vue'
@@ -27,19 +27,30 @@
   const codeSidebarWidth = ref(window.innerWidth/3)
   const mode = ref(null)
 
-  function newItemName() {
+  if (!mindstorm.parts) mindstorm.parts = {}
+  if (!mindstorm.x) mindstorm.x = 0
+  if (!mindstorm.y) mindstorm.y = 0
+  if (!mindstorm.angle) mindstorm.angle = 100
+  if (!mindstorm.width) mindstorm.width = 100
+  if (!mindstorm.height) mindstorm.height = 100
+
+  const selectedPart = computed(() => {
+    return selected.value && mindstorm.parts[selected.value] ? mindstorm.parts[selected.value] : null
+  })
+
+  function newPartName() {
     let index = 1
     let name = `item${index}`
-    while (mindstorm[name]) name = `item${index++}`
+    while (mindstorm.parts[name]) name = `item${index++}`
     return name
   }
 
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
-    const name = newItemName()
+    const name = newPartName()
     //  TODO: sprite should be a whole sprite object...
     selected.value = name
-    mindstorm[name] = {
+    mindstorm.parts[name] = {
       sprite: uuid,
       x: 10,
       y: 10,
@@ -54,7 +65,7 @@
   }
 
   function handleDragstart({ event: { detail: { svg_x, svg_y } } }) {
-    if (selected.value && mindstorm[selected.value]) {
+    if (selectedPart.value) {
       if (mode.value === MODES.CONSTRAINT) {
         console.log('CONSTRAINT START', svg_x, svg_y)
       }
@@ -62,7 +73,7 @@
   }
 
   function handleDragstop({ event: { detail } }) {
-    if (selected.value && mindstorm[selected.value]) {
+    if (selectedPart.value) {
       if (mode.value === MODES.CONSTRAINT) {
         console.log('CONSTRAINT STOP', detail)
       }
@@ -70,13 +81,13 @@
   }
 
   function handleDrag({ event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
-    if (selected.value && mindstorm[selected.value]) {
+    if (selectedPart.value) {
       if (mode.value === MODES.CONSTRAINT) {
         console.log('CONSTRAINT MODE!', svg_x, svg_y)
       }
       else {
-        mindstorm[selected.value].x += svg_dx
-        mindstorm[selected.value].y += svg_dy
+        selectedPart.value.x += svg_dx
+        selectedPart.value.y += svg_dy
       }
     }
   }
@@ -88,9 +99,8 @@
   }
 
   function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
-    const name = selected.value
-    if (name && mindstorm[name]) {
-      const o = mindstorm[name]
+    if (selectedPart.value) {
+      const o = selectedPart.value
       const { x, y, angle: a, width, height } = o
 
       const prev_svg_x = svg_x - svg_dx
@@ -99,8 +109,8 @@
       const a1 = Math.atan2(svg_y - y, svg_x - x)
       const a2 = Math.atan2(prev_svg_y - y, prev_svg_x - x)
 
-      mindstorm[name].angle += (a1-a2)*180/Math.PI
-      const aRad = mindstorm[name].angle/180*Math.PI
+      o.angle += (a1-a2)*180/Math.PI
+      const aRad = o.angle/180*Math.PI
 
       const theta = Math.atan2(svg_dy, svg_dx)
       const dOnDiagonal = distance(0, 0, svg_dx, svg_dy) * Math.cos(theta - aRad + Math.atan2(-height, width))
@@ -127,19 +137,19 @@
   }
 
   function removeSelected() {
-    delete mindstorm[selected.value]
+    delete mindstorm.parts[selected.value]
     selected.value = null
   }
 
   function handleResize({ target, event }) {
+    const o = mindstorm.parts[target]
+
     const eventRatio = event.width/event.height
-    const targetRatio = mindstorm[target].width/mindstorm[target].height
-    if (eventRatio > targetRatio) {
-      mindstorm[target].height *= targetRatio/eventRatio
-    }
-    else if (eventRatio < targetRatio) {
-      mindstorm[target].width *= eventRatio/targetRatio
-    }
+    const targetRatio = o.width/o.height
+
+    const ratio = targetRatio/eventRatio
+    if (1 > ratio) o.height *= ratio
+    else if (1 < ratio) o.width /= ratio
   }
 
 </script>
@@ -184,17 +194,17 @@
             v-if="selected"
             :transform="`
               translate(
-                ${mindstorm[selected].x},
-                ${mindstorm[selected].y}
+                ${selectedPart.x},
+                ${selectedPart.y}
               )
-              rotate(${mindstorm[selected].angle}, 0, 0)
+              rotate(${selectedPart.angle}, 0, 0)
             `"
           >
             <rect
-              :x="-mindstorm[selected].width/2"
-              :y="-mindstorm[selected].height/2"
-              :width="mindstorm[selected].width"
-              :height="mindstorm[selected].height"
+              :x="-selectedPart.width/2"
+              :y="-selectedPart.height/2"
+              :width="selectedPart.width"
+              :height="selectedPart.height"
               fill="rgba(0,0,0,0)"
               stroke-width="0.5"
               stroke="black"
@@ -208,8 +218,8 @@
               :r="1"
             />
             <circle
-              :cx="mindstorm[selected].width/2"
-              :cy="mindstorm[selected].height/2"
+              :cx="selectedPart.width/2"
+              :cy="selectedPart.height/2"
               :r="4"
               v-drag
               class="resizer-circle"
@@ -231,7 +241,7 @@
       </div>
       <div id="world-sidebar-content">
         <div
-          v-for="item, name in mindstorm"
+          v-for="item, name in mindstorm.parts"
           :key="name"
           :class="{
             'sidebar-mindstorm-item': true,
@@ -256,7 +266,7 @@
     >
       <YAMLEditor
         :key="selected"
-        :object="selected ? mindstorm[selected] : mindstorm"
+        :object="selected ? selectedPart : mindstorm"
       />
     </div>
   </div>

@@ -92,15 +92,13 @@
   }
 
   function handleDrag({ event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
-    if (selectedPart.value) {
-      if (mode.value === MODES.CONSTRAINT && currentConstraint) {
-        currentConstraint.to.x = svg_x
-        currentConstraint.to.y = svg_y
-      }
-      else {
-        selectedPart.value.x += svg_dx
-        selectedPart.value.y += svg_dy
-      }
+    if (mode.value === MODES.CONSTRAINT && currentConstraint) {
+      currentConstraint.to.x = svg_x
+      currentConstraint.to.y = svg_y
+    }
+    else if (selectedPart.value) {
+      selectedPart.value.x += svg_dx
+      selectedPart.value.y += svg_dy
     }
   }
 
@@ -243,7 +241,7 @@
               :y="-selectedPart.height/2"
               :width="selectedPart.width"
               :height="selectedPart.height"
-              fill="rgba(0,0,0,0)"
+              fill="none"
               stroke-width="0.5"
               stroke="black"
               stroke-dasharray="1,1"
@@ -292,6 +290,45 @@
               :cx="0"
               :cy="0"
               :r="1"
+            />
+          </g>
+          <g
+            v-for="{from, to}, name in mindstorm.constraints"
+            :key="name"
+          >
+            <line
+              :x1="from.x"
+              :y1="from.y"
+              :x2="to.x"
+              :y2="to.y"
+              stroke-width="0.5"
+              stroke="rgba(0,0,0,0.5)"
+            />
+            <circle
+              :cx="from.x"
+              :cy="from.y"
+              :r="1"
+              stroke="rgba(0,0,0,0.5)"
+              stroke-width="0.5"
+              fill="rgba(0,0,0,0)"
+              v-drag
+              @drag="({ detail: { svg_dx, svg_dy } }) => {
+                from.x += svg_dx
+                from.y += svg_dy
+              }"
+            />
+            <circle
+              :cx="to.x"
+              :cy="to.y"
+              :r="1"
+              stroke="rgba(0,0,0,0.5)"
+              stroke-width="0.5"
+              fill="rgba(0,0,0,0)"
+              v-drag
+              @drag="({ detail: { svg_dx, svg_dy } }) => {
+                to.x += svg_dx
+                to.y += svg_dy
+              }"
             />
           </g>
         </template>

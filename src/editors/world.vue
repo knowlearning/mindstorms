@@ -28,9 +28,10 @@
   const mode = ref(null)
 
   if (!mindstorm.parts) mindstorm.parts = {}
+  if (!mindstorm.constraints) mindstorm.constraints = {}
   if (!mindstorm.x) mindstorm.x = 0
   if (!mindstorm.y) mindstorm.y = 0
-  if (!mindstorm.angle) mindstorm.angle = 100
+  if (!mindstorm.angle) mindstorm.angle = 0
   if (!mindstorm.width) mindstorm.width = 100
   if (!mindstorm.height) mindstorm.height = 100
 

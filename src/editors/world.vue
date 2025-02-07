@@ -10,17 +10,22 @@
     uuid: String
   })
 
+  const MODES = {
+    PLAY: 'play',
+    CONSTRAINT: 'constraint'
+  }
+
   const { registerKey } = useKeyboardEvents()
 
   registerKey('Delete', removeSelected)
   registerKey('Backspace', removeSelected)
-  registerKey('Escape', () => playMode.value = false)
+  registerKey('Escape', () => mode.value = null)
 
   const selected = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
   const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
-  const playMode = ref(false)
+  const mode = ref(null)
 
   function newItemName() {
     let index = 1
@@ -48,11 +53,31 @@
     selected.value = target
   }
 
-  function handleDrag({ detail: { svg_dx, svg_dy } }) {
-    const name = selected.value
-    if (name && mindstorm[name]) {
-      mindstorm[name].x += svg_dx
-      mindstorm[name].y += svg_dy
+  function handleDragstart({ event: { detail: { svg_x, svg_y } } }) {
+    if (selected.value && mindstorm[selected.value]) {
+      if (mode.value === MODES.CONSTRAINT) {
+        console.log('CONSTRAINT START', svg_x, svg_y)
+      }
+    }
+  }
+
+  function handleDragstop({ event: { detail } }) {
+    if (selected.value && mindstorm[selected.value]) {
+      if (mode.value === MODES.CONSTRAINT) {
+        console.log('CONSTRAINT STOP', detail)
+      }
+    }
+  }
+
+  function handleDrag({ event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
+    if (selected.value && mindstorm[selected.value]) {
+      if (mode.value === MODES.CONSTRAINT) {
+        console.log('CONSTRAINT MODE!', svg_x, svg_y)
+      }
+      else {
+        mindstorm[selected.value].x += svg_dx
+        mindstorm[selected.value].y += svg_dy
+      }
     }
   }
 
@@ -128,11 +153,17 @@
       <div id="resource-sidebar-header">
         <Button
           icon="fa-solid fa-play"
-          @click="playMode = true"
+          @click="mode = MODES.PLAY"
+          :pressed="mode === MODES.PLAY"
         />
         <Button
           icon="fa-solid fa-upload"
           @click="uploadImage"
+        />
+        <Button
+          icon="fa-solid fa-anchor"
+          @click="mode = MODES.CONSTRAINT === mode ? null : MODES.CONSTRAINT"
+          :pressed="mode === MODES.CONSTRAINT"
         />
       </div>
       <div id="resource-sidebar-content">
@@ -142,7 +173,11 @@
       <World
         :world="mindstorm"
         @click="handleClick"
+        @mousedown.stop
         @resize="handleResize"
+        @dragstart="handleDragstart"
+        @drag="handleDrag"
+        @dragstop="handleDragstop"
       >
         <template v-slot:overlay>
           <g
@@ -165,8 +200,7 @@
               stroke="black"
               stroke-dasharray="1,1"
               v-drag
-              @mousedown.stop
-              @drag="handleDrag"
+              style="pointer-events: none;"
             />
             <circle
               :cx="0"
@@ -229,17 +263,17 @@
   <div
     id="mindstorm-player-wrapper"
     class="fade-in"
-    v-if="playMode"
+    v-if="mode === MODES.PLAY"
   >
     <div id="mindstorm-player-controls">
       <Button
         icon="fa-solid fa-xmark"
-        @click="playMode = false"
+        @click="mode = null"
       />
     </div>
     <vueEmbedComponent
       :id="uuid"
-      @close="playMode = false"
+      @close="mode = null"
       style="background: black;"
     />
   </div>

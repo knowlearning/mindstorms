@@ -74,10 +74,12 @@ export default {
       }
     }
 
-    const handleEnd = () => {
+    const handleEnd = event => {
       isDragging = false
 
-      el.dispatchEvent(new CustomEvent('dragstop', {}))
+      const detail = calculatePoints(event)
+
+      el.dispatchEvent(new CustomEvent('dragstop', { detail }))
       document.removeEventListener('mousemove', handleMove)
       document.removeEventListener('touchmove', handleMove)
       document.removeEventListener('mouseup', handleEnd)

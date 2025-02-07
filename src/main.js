@@ -7,7 +7,8 @@ import Agent from '@knowlearning/agents'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPencil, faEllipsis, faUpload, faXmark, faGlobe, faPlay, faPause, faAnchor } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import drag from './drag.js'
+import drag from './directives/drag.js'
+import focus from './directives/focus.js'
 
 window.Agent = Agent
 
@@ -20,11 +21,7 @@ document.addEventListener('gesturestart', function (event) {
 
 if (uuid) {
   createApp(App, { component: Player, props: { uuid } })
-    .directive('focus', {
-      mounted(el, binding) {
-        setTimeout(() => el.focus(), 50)
-      }
-    })
+    .directive('focus', focus)
     .directive('drag', drag)
     .mount('#app')
 }
@@ -42,11 +39,7 @@ else {
     )
 
   createApp(App, { component: Manager, props: {} })
-    .directive('focus', {
-      mounted(el, binding) {
-        setTimeout(() => el.focus(), 50)
-      }
-    })
+    .directive('focus', focus)
     .directive('drag', drag)
     .mount('#app')
 }

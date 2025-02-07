@@ -1,8 +1,8 @@
 export default {
   mounted(el, binding) {
-    let startX, startY, lastX, lastY
-    let isDragging = false
+    let isHovering = false
 
+    let startX, startY, lastX, lastY
 
     function calculatePoints(event) {
       const clientX = event.touches ? event.touches[0].clientX : event.clientX
@@ -39,11 +39,10 @@ export default {
       return detail
     }
 
-    el.addEventListener('dragstart', e => e.preventDefault())
+    el.emitHoverStart = event => {
+      if (!isHovering) {
+        isHovering = true
 
-    const handleStart = event => {
-      if (event.type === 'mousedown' || event.touches) {
-        isDragging = true
         const clientX = event.touches ? event.touches[0].clientX : event.clientX
         const clientY = event.touches ? event.touches[0].clientY : event.clientY
 
@@ -54,45 +53,32 @@ export default {
 
         const detail = calculatePoints(event)
 
-        el.dispatchEvent(new CustomEvent('dragstart', { detail }))
-
-        document.addEventListener('mousemove', handleMove)
-        document.addEventListener('touchmove', handleMove)
-        document.addEventListener('mouseup', handleEnd)
-        document.addEventListener('touchend', handleEnd)
+        el.dispatchEvent(new CustomEvent('hoverstart', { detail }))
       }
     }
 
-    const handleMove = (event) => {
-      if (isDragging) {
+    el.emitHoverEnd = event => {
+      if (isHovering) {
+        isHovering = false
+
         const detail = calculatePoints(event)
-
-        lastX = detail.clientX
-        lastY = detail.clientY
-
-        el.dispatchEvent(new CustomEvent('drag', { detail }))
+        el.dispatchEvent(new CustomEvent('hoverend', { detail }))
       }
     }
 
-    const handleEnd = event => {
-      isDragging = false
-
+    el.emitHover = event => {
       const detail = calculatePoints(event)
-
-      el.dispatchEvent(new CustomEvent('dragend', { detail }))
-      document.removeEventListener('mousemove', handleMove)
-      document.removeEventListener('touchmove', handleMove)
-      document.removeEventListener('mouseup', handleEnd)
-      document.removeEventListener('touchend', handleEnd)
+      el.dispatchEvent(new CustomEvent('hover', { detail }))
     }
 
-    el.handleStart = handleStart
-    el.addEventListener('mousedown', handleStart)
-    el.addEventListener('touchstart', handleStart)
+    el.addEventListener('mouseenter', el.emitHoverStart)
+    el.addEventListener('mouseleave', el.emitHoverEnd)
+    el.addEventListener('mousemove', el.emitHover)
   },
 
   unmounted(el) {
-    el.removeEventListener('mousedown', el.handleStart)
-    el.removeEventListener('touchstart', el.handleStart)
-  }
-}
+    el.removeEventListener('mouseenter', el.emitHoverStart)
+    el.removeEventListener('mouseleave', el.emitHoverEnd)
+    el.removeEventListener('mousemove', el.emitHover)
+  },
+};

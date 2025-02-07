@@ -9,6 +9,7 @@ import { faPencil, faEllipsis, faUpload, faXmark, faGlobe, faPlay, faPause, faAn
 import { library } from '@fortawesome/fontawesome-svg-core'
 import drag from './directives/drag.js'
 import focus from './directives/focus.js'
+import hover from './directives/hover.js'
 
 window.Agent = Agent
 
@@ -23,6 +24,7 @@ if (uuid) {
   createApp(App, { component: Player, props: { uuid } })
     .directive('focus', focus)
     .directive('drag', drag)
+    .directive('hover', hover)
     .mount('#app')
 }
 else {
@@ -41,5 +43,6 @@ else {
   createApp(App, { component: Manager, props: {} })
     .directive('focus', focus)
     .directive('drag', drag)
+    .directive('hover', hover)
     .mount('#app')
 }

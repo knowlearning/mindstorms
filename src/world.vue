@@ -36,9 +36,13 @@
         :key="name"
         :item="item"
         v-drag
-        @drag="event => emit('drag', { target: name, event })"
+        v-hover
         @dragstart="event => emit('dragstart', { target: name, event })"
+        @drag="event => emit('drag', { target: name, event })"
         @dragend="event => emit('dragend', { target: name, event })"
+        @hoverstart="event => emit('hoverstart', { target: name, event })"
+        @hover="event => emit('hover', { target: name, event })"
+        @hoverend="event => emit('hoverend', { target: name, event })"
         @click.stop="event => emit('click', { target: name, event })"
         @resize="event => emit('resize', { target: name, event })"
       />

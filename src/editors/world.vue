@@ -22,6 +22,7 @@
   registerKey('Escape', () => mode.value = null)
 
   const selected = ref(null)
+  const hovered = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
   const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
@@ -39,16 +40,20 @@
     return selected.value && mindstorm.parts[selected.value] ? mindstorm.parts[selected.value] : null
   })
 
-  function newPartName() {
+  const hoveredPart = computed(() => {
+    return hovered.value && mindstorm.parts[hovered.value] ? mindstorm.parts[hovered.value] : null
+  })
+
+  function newName(type, existing) {
     let index = 1
-    let name = `item${index}`
-    while (mindstorm.parts[name]) name = `item${index++}`
+    let name = `${type}${index}`
+    while (existing[name]) name = `${type}${index++}`
     return name
   }
 
   async function uploadImage() {
     const uuid = await Agent.upload({ browser: true })
-    const name = newPartName()
+    const name = newName('part', mindstorm.parts)
     //  TODO: sprite should be a whole sprite object...
     selected.value = name
     mindstorm.parts[name] = {
@@ -65,26 +70,32 @@
     selected.value = target
   }
 
+  let currentConstraint = null
   function handleDragstart({ event: { detail: { svg_x, svg_y } } }) {
-    if (selectedPart.value) {
+    if (hovered.value) {
       if (mode.value === MODES.CONSTRAINT) {
-        console.log('CONSTRAINT START', svg_x, svg_y)
-      }
-    }
-  }
-
-  function handleDragstop({ event: { detail } }) {
-    if (selectedPart.value) {
-      if (mode.value === MODES.CONSTRAINT) {
-        console.log('CONSTRAINT STOP', detail)
+        const name = newName('constraint', mindstorm.constraints)
+        mindstorm.constraints[name] = {
+          from: {
+            x: svg_x,
+            y: svg_y,
+            reference: hovered.value
+          },
+          to: {
+            x: svg_x,
+            y: svg_y
+          }
+        }
+        currentConstraint = mindstorm.constraints[name]
       }
     }
   }
 
   function handleDrag({ event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
     if (selectedPart.value) {
-      if (mode.value === MODES.CONSTRAINT) {
-        console.log('CONSTRAINT MODE!', svg_x, svg_y)
+      if (mode.value === MODES.CONSTRAINT && currentConstraint) {
+        currentConstraint.to.x = svg_x
+        currentConstraint.to.y = svg_y
       }
       else {
         selectedPart.value.x += svg_dx
@@ -92,6 +103,29 @@
       }
     }
   }
+
+  function handleDragend({ event: { detail } }) {
+    currentConstraint = null
+  }
+
+
+  function handleHoverstart({ target, event: { detail: { svg_x, svg_y } } }) {
+    hovered.value = target
+  }
+
+  function handleHover({ target, event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
+    if (currentConstraint) {
+      if (currentConstraint.from.reference === target) {
+        currentConstraint.to.reference = null
+      }
+      else currentConstraint.to.reference = target
+    }
+  }
+
+  function handleHoverend({ target, event: { detail } }) {
+    hovered.value = null
+  }
+
 
   function distance(x1, y1, x2, y2) {
     const a = x1-x2
@@ -188,7 +222,10 @@
         @resize="handleResize"
         @dragstart="handleDragstart"
         @drag="handleDrag"
-        @dragend="handleDragstop"
+        @dragend="handleDragend"
+        @hoverstart="handleHoverstart"
+        @hover="handleHover"
+        @hoverend="handleHoverend"
       >
         <template v-slot:overlay>
           <g
@@ -217,6 +254,7 @@
               :cx="0"
               :cy="0"
               :r="1"
+              style="pointer-events: none;"
             />
             <circle
               :cx="selectedPart.width/2"
@@ -226,6 +264,34 @@
               class="resizer-circle"
               @mousedown.stop
               @drag="handleResizeAndRotate"
+            />
+          </g>
+          <g
+            v-if="hovered"
+            :transform="`
+              translate(
+                ${hoveredPart.x},
+                ${hoveredPart.y}
+              )
+              rotate(${hoveredPart.angle}, 0, 0)
+            `"
+            style="pointer-events: none;"
+          >
+            <rect
+              :x="-hoveredPart.width/2"
+              :y="-hoveredPart.height/2"
+              :width="hoveredPart.width"
+              :height="hoveredPart.height"
+              fill="rgba(0,0,0,0)"
+              stroke-width="0.5"
+              stroke="rgba(0,0,0,0.25)"
+              stroke-dasharray="1,1"
+              v-drag
+            />
+            <circle
+              :cx="0"
+              :cy="0"
+              :r="1"
             />
           </g>
         </template>

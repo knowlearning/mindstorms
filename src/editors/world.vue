@@ -1,7 +1,7 @@
 <script setup>
   import { ref, reactive, watch, computed } from 'vue'
   import { vueEmbedComponent } from '@knowlearning/agents/vue.js'
-  import { useKeyboardEvents } from '../keyboard.js'
+  import { useKeyboardEvents } from '../helpers/keyboard.js'
   import World from '../world.vue'
   import Button from '../button.vue'
   import YAMLEditor from './yaml.vue'

@@ -2,8 +2,8 @@
   import * as Matter from 'matter-js'
   import World from './world.vue'
   import { ref, reactive, watch } from 'vue'
-  import { useAnimationLoop } from './animation-loop.js'
-  import { useKeyboardEvents } from './keyboard.js'
+  import { useAnimationLoop } from './helpers/animation.js'
+  import { useKeyboardEvents } from './helpers/keyboard.js'
 
   const canvas = ref(null)
 

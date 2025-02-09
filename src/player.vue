@@ -11,6 +11,7 @@
 
   const runner = Matter.Runner.create()
   Matter.Runner.run(runner, engine)
+  Matter.Engine.update(engine, 16)
 
   const { registerKey } = useKeyboardEvents()
   const { registerAnimationCallback }  = useAnimationLoop()
@@ -127,7 +128,9 @@
       options: {
         wireframes: true,
         width: 100,
-        height: 100
+        height: 100,
+        wireframeBackground: 'rgba(0,0,0,0)',
+        wireframeStrokeStyle: 'rgba(0,0,0,0.2)'
       }
     })
     Matter.Render.run(render)
@@ -281,7 +284,6 @@ Matter.Events.on(engine, 'collisionEnd', event => {
     height: 98%;
     margin: 1%;
     position: absolute;
-    opacity: 0.25;
     pointer-events: none;
   }
 </style>

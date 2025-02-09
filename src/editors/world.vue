@@ -5,7 +5,7 @@
   import World from '../world.vue'
   import Button from '../button.vue'
   import YAMLEditor from './yaml.vue'
-  import { Vector } from 'matter-js'
+  import { worldToObjectPoint, objectToWorldPoint, resolveReference } from '../helpers.js'
 
   const props = defineProps({
     uuid: String
@@ -72,27 +72,12 @@
     selected.value = target
   }
 
-  function resolveReference(reference) {
-    //  TODO: better reference resolution
-    return mindstorm.parts[reference] || mindstorm
-  }
-
-  function worldToObjectPoint(worldPoint, object) {
-    const translated = Vector.sub(worldPoint, object)
-    return Vector.rotate(translated, -object.angle/180*Math.PI)
-  }
-
-  function objectToWorldPoint(objectPoint, object) {
-    const rotated = Vector.rotate(objectPoint, object.angle/180*Math.PI)
-    return Vector.add(rotated, object)
-  }
-
   const constraintWorldCoordinates = computed(() => {
     return Object.entries(mindstorm.constraints).map(([name, {from, to}]) => {
       return {
         name,
-        from: objectToWorldPoint(from, resolveReference(from.reference)),
-        to: objectToWorldPoint(to, resolveReference(to.reference))
+        from: objectToWorldPoint(from, resolveReference(from.reference, mindstorm)),
+        to: objectToWorldPoint(to, resolveReference(to.reference, mindstorm))
       }
     })
   })
@@ -109,7 +94,7 @@
           from: {
             ...worldToObjectPoint(
               { x, y },
-              resolveReference(hovered.value)
+              resolveReference(hovered.value, mindstorm)
             ),
             reference: hovered.value
           },
@@ -123,7 +108,7 @@
   function handleDrag({ event: { detail: { svg_dx, svg_dy, svg_x: x, svg_y: y } } }) {
     if (mode.value === MODES.CONSTRAINT && currentConstraint) {
       const { to } = currentConstraint
-      Object.assign(to, worldToObjectPoint({ x, y }, resolveReference(to.reference)))
+      Object.assign(to, worldToObjectPoint({ x, y }, resolveReference(to.reference, mindstorm)))
     }
     else if (selectedPart.value) {
       selectedPart.value.x += svg_dx
@@ -369,7 +354,7 @@
               @drag="({ detail: { svg_x, svg_y } }) => {
                 const { x, y } = worldToObjectPoint(
                   { x:svg_x, y:svg_y },
-                  resolveReference(mindstorm.constraints[name].from.reference)
+                  resolveReference(mindstorm.constraints[name].from.reference, mindstorm)
                 )
                 mindstorm.constraints[name].from.x = x
                 mindstorm.constraints[name].from.y = y
@@ -386,7 +371,7 @@
               @drag="({ detail: { svg_x, svg_y } }) => {
                 const { x, y } = worldToObjectPoint(
                   { x:svg_x, y:svg_y },
-                  resolveReference(mindstorm.constraints[name].to.reference)
+                  resolveReference(mindstorm.constraints[name].to.reference, mindstorm)
                 )
                 mindstorm.constraints[name].to.x = x
                 mindstorm.constraints[name].to.y = y

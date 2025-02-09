@@ -4,6 +4,7 @@
   import { ref, reactive, watch } from 'vue'
   import { useAnimationLoop } from './composables/animation.js'
   import { useKeyboardEvents } from './composables/keyboard.js'
+  import { worldToObjectPoint, objectToWorldPoint, resolveReference } from './helpers.js'
 
   const canvas = ref(null)
 
@@ -62,6 +63,7 @@
   Object.assign(world, mindstorm)
 
   const matterIdToObject = new Map()
+  const referenceToBody = new Map()
 
   Object
     .entries(world.parts)
@@ -94,6 +96,24 @@
 
       Matter.World.add(engine.world, compositeBody)
       matterIdToObject.set(compositeBody.id, object)
+      referenceToBody.set(name, compositeBody)
+    })
+
+  Object
+    .values(world.constraints)
+    .forEach(({ from, to }) => {
+      console.log('BODY A', referenceToBody.get(from.reference),'BODY B', referenceToBody.get(to.reference), distance(from, to))
+      Matter.World.add(engine.world, Matter.Constraint.create({
+        bodyA: referenceToBody.get(from.reference),
+        bodyB: referenceToBody.get(to.reference),
+        pointA: { x: from.x, y: from.y },
+        pointB: { x: to.x, y: to.y },
+        length: distance(
+          objectToWorldPoint(from, resolveReference(from.reference, world)),
+          objectToWorldPoint(to, resolveReference(to.reference, world))
+        ),
+        stiffness: 1
+      }))
     })
 
   Matter.Events.on(engine, 'afterUpdate', function() {

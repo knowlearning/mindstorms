@@ -24,6 +24,7 @@
 
   const selected = ref(null)
   const hovered = ref(null)
+  const selectedConstraint = ref(null)
   const mindstorm = reactive(await Agent.state(props.uuid))
   const editingWorld = ref(false)
   const codeSidebarWidth = ref(window.innerWidth/3)
@@ -185,6 +186,7 @@
       o.height *= scaleFactor
 
       scaleParts(o.parts || {}, scaleFactor)
+      scaleConstraints(selected.value, scaleFactor)
     }
   }
 
@@ -197,6 +199,15 @@
         part.width *= scale
         part.height *= scale
         scaleParts(part.parts)
+      })
+  }
+
+  function scaleConstraints(reference, scale) {
+    Object
+      .values(mindstorm.constraints)
+      .forEach(({ to, from }) => {
+        if (to.reference === reference) scaleVector(to, scale)
+        if (from.reference === reference) scaleVector(from, scale)
       })
   }
 
@@ -216,12 +227,22 @@
     else if (1 < ratio) o.width /= ratio
   }
 
+  function scaleVector(v, s) {
+    v.x *= s
+    v.y *= s
+  }
+
 </script>
 
 <template>
   <div
     id="mindstorm-editor-wrapper"
-    @click="selected = null"
+    @mousedown="() => {
+      if (selected !== hovered) {
+        selected = null
+      }
+      selectedConstraint = null
+    }"
   >
     <div id="resource-sidebar">
       <div id="resource-sidebar-header">
@@ -327,6 +348,7 @@
             :style="{
               'pointer-events': currentConstraint ? 'none' : 'auto'
             }"
+            @mousedown.stop="selectedConstraint = name"
           >
             <line
               :x1="from.x"

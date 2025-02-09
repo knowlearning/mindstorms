@@ -12,5 +12,5 @@ export function objectToWorldPoint(objectPoint, object) {
 
 export function resolveReference(reference, world) {
   //  TODO: better reference resolution
-  return world.parts[reference] || mindstorm
+  return world.parts[reference] || world
 }

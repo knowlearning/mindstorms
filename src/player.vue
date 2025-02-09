@@ -12,7 +12,6 @@
 
   const runner = Matter.Runner.create()
   Matter.Runner.run(runner, engine)
-  Matter.Engine.update(engine, 16)
 
   const { registerKey } = useKeyboardEvents()
   const { registerAnimationCallback }  = useAnimationLoop()
@@ -69,7 +68,12 @@
     .entries(world.parts)
     .forEach(([ name, object ]) => {
       const { x, y, width, height, angle, parts={} } = object
-      const body = Matter.Bodies.rectangle(x, y, width, height, { angle: angle*Math.PI/180 })
+      const body = Matter.Bodies.rectangle(x, y, width, height, {
+        angle: angle*Math.PI/180,
+        friction: 0.5,
+        restitution: 0.1,
+        density: 0.001
+      })
 
       const bodies = [body]
 
@@ -88,15 +92,15 @@
         bodies.push(partBody)
       })
 
-      const compositeBody = Matter.Body.create({
+      /*const compositeBody = Matter.Body.create({
         parts: bodies,
         angle: angle*Math.PI/180,
         isStatic: object.static
-      })
+      })*/
 
-      Matter.World.add(engine.world, compositeBody)
-      matterIdToObject.set(compositeBody.id, object)
-      referenceToBody.set(name, compositeBody)
+      Matter.World.add(engine.world, body)
+      matterIdToObject.set(body.id, object)
+      referenceToBody.set(name, body)
     })
 
   Object
@@ -127,7 +131,10 @@
         Matter.Body.setStatic(body, !!o.static)
       }
 
-      if (o.static) Matter.Body.setPosition(body, o)
+      if (o.static) {
+        Matter.Body.setPosition(body, o)
+        Matter.Body.setVelocity(body, {x:0,y:0})
+      }
       else if (distance(o, p) > 0.1) {
         o.x = p.x
         o.y = p.y

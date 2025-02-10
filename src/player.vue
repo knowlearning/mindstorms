@@ -233,9 +233,9 @@
 
 
 function handleEvent(object, name, event) {
-  if (object.parts?.[name]) {
+  if (object[name]) {
     try {
-      const scopedHandler = new Function('world', 'event', `with (world, event) { ${object?.[name]} }`)
+      const scopedHandler = new Function('world', 'event', `with (world, event) { ${object[name]} }`)
       const result = scopedHandler.bind(object)(world, event)
     } catch (error) {
       console.error('Error:', error.message)
@@ -245,8 +245,10 @@ function handleEvent(object, name, event) {
 
 Matter.Events.on(engine, 'collisionStart', event => {
   event.pairs.forEach(pair => {
-    const objectA = matterIdToObject.get(pair.bodyA.parent.id)
-    const objectB = matterIdToObject.get(pair.bodyB.parent.id)
+    const objectA = matterIdToObject.get(pair.bodyA.id)
+    const objectB = matterIdToObject.get(pair.bodyB.id)
+
+    console.log(objectA, objectB)
 
     if (objectA && objectB) {
       handleEvent(objectA, 'collide', { other: objectB })
@@ -257,8 +259,8 @@ Matter.Events.on(engine, 'collisionStart', event => {
 
 Matter.Events.on(engine, 'collisionEnd', event => {
   event.pairs.forEach(pair => {
-    const objectA = matterIdToObject.get(pair.bodyA.parent.id)
-    const objectB = matterIdToObject.get(pair.bodyB.parent.id)
+    const objectA = matterIdToObject.get(pair.bodyA.id)
+    const objectB = matterIdToObject.get(pair.bodyB.id)
 
     if (objectA && objectB) {
       handleEvent(objectA, 'uncollide', { other: objectB })

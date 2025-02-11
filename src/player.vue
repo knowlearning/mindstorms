@@ -4,7 +4,7 @@
   import { ref, reactive, watch } from 'vue'
   import { useAnimationLoop } from './composables/animation.js'
   import { useKeyboardEvents } from './composables/keyboard.js'
-  import { worldToObjectPoint, objectToWorldPoint, resolveReference } from './helpers.js'
+  import { worldToObjectPoint, objectToWorldPoint, resolveReference, distance } from './helpers.js'
   import BoundingRectangle from './bounding-rectangle.vue'
   import Constraint from './constraint.vue'
 
@@ -158,8 +158,6 @@
     Matter.Render.run(render)
   }
 
-
-
   function handleClick({target: name, event: rawEvent}) {
     const handler = world.parts?.[name]?.click
     if (handler) handleEvent(name, 'click', {})
@@ -180,12 +178,6 @@
   function handleDragstop({target: name, event }) {
     const handler = world.parts?.[name]?.dragend
     if (handler) handleEvent(name, 'dragend', event)
-  }
-
-  function distance(a, b) {
-    const x = a.x-b.x
-    const y = a.y-b.y
-    return Math.sqrt(x*x + y*y)
   }
 
   function handleEvent(objectName, eventName, event) {

@@ -5,7 +5,7 @@
   import World from '../world.vue'
   import Button from '../button.vue'
   import YAMLEditor from './yaml.vue'
-  import { worldToObjectPoint, objectToWorldPoint, resolveReference } from '../helpers.js'
+  import { worldToObjectPoint, objectToWorldPoint, resolveReference, distance } from '../helpers.js'
   import BoundingRectangle from '../bounding-rectangle.vue'
   import Constraint from '../constraint.vue'
 
@@ -132,12 +132,6 @@
     hovered.value = null
   }
 
-  function distance(x1, y1, x2, y2) {
-    const a = x1-x2
-    const b = y1-y2
-    return Math.sqrt(a*a + b*b)
-  }
-
   function handleResizeAndRotate({ detail: { svg_dx, svg_dy, svg_x, svg_y } }) {
     if (selectedPart.value) {
       const o = selectedPart.value
@@ -153,9 +147,9 @@
       const aRad = o.angle/180*Math.PI
 
       const theta = Math.atan2(svg_dy, svg_dx)
-      const dOnDiagonal = distance(0, 0, svg_dx, svg_dy) * Math.cos(theta - aRad + Math.atan2(-height, width))
+      const dOnDiagonal = distance({x:0, y:0}, {x:svg_dx, y:svg_dy}) * Math.cos(theta - aRad + Math.atan2(-height, width))
 
-      const scaleFactor = 1 + dOnDiagonal/(distance(0, 0, width, height)/2)
+      const scaleFactor = 1 + dOnDiagonal/(distance({x:0, y:0}, {x: width, y: height})/2)
 
       o.width *= scaleFactor
       o.height *= scaleFactor

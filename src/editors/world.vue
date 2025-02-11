@@ -269,6 +269,7 @@
             :style="{
               'pointer-events': currentConstraint ? 'none' : 'auto'
             }"
+            editable
             :selected="selectedConstraint === name"
             :world="mindstorm"
             :name="name"

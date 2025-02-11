@@ -5,7 +5,8 @@
   const { world, name } = defineProps({
   	world: Object,
   	name: String,
-    active: Boolean
+    active: Boolean,
+    editable: Boolean
   })
 
   const constraint = world.constraints[name]
@@ -20,6 +21,8 @@
   })
 
   function handleDrag({ detail: { svg_x, svg_y } }, endpoint) {
+    if (!editable) return
+
     const { x, y } = worldToObjectPoint(
       { x:svg_x, y:svg_y },
       resolveReference(endpoint.reference, world)

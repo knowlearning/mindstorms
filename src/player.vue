@@ -38,15 +38,8 @@
         }
         if (step) handleEvent(name, 'step', {})
       })
-    Object
-      .entries(world.connections)
-      .forEach(([name, connection]) => {
-        if (!initialized.has(`connections/${name}`)) {
-          initialized.add(`connections/${name}`)
-          insertConnection(connection)
-        }
-      })
-    
+    updateConnections()
+    updateParts()
   })
 
   Object.keys(world).forEach(key => delete world[key])
@@ -55,48 +48,40 @@
   const matterIdToWorldObject = new Map()
   const referenceToBody = new Map()
 
-  Object
-    .entries(world.parts)
-    .forEach(([ name, object ]) => {
-      const { x, y, width, height, angle, parts={} } = object
-      const body = Matter.Bodies.rectangle(x, y, width, height, {
-        angle: angle*Math.PI/180,
-        friction: 0.5,
-        restitution: 0.1,
-        density: 0.001
-      })
+  let lastConnections = new Set()
 
-      const bodies = [body]
+  function updateConnections() {
+    const presentConnections = new Set(Object.keys(world.connections))
 
-      Object.values(parts).forEach(part => {
-        const rotatedPoint = Matter.Vector.rotate({ x: part.x, y: part.y }, angle*Math.PI/180)
-        const partBody = Matter.Bodies.rectangle(
-          rotatedPoint.x + object.x,
-          rotatedPoint.y + object.y,
-          part.width,
-          part.height,
-          {
-            angle: (angle + part.angle)*Math.PI/180
-          }
-        )
+    presentConnections
+      .difference(lastConnections)
+      .forEach(insertConnection)
 
-        bodies.push(partBody)
-      })
+    lastConnections
+      .difference(presentConnections)
+      .forEach(removeConnection)
 
-      /*const compositeBody = Matter.Body.create({
-        parts: bodies,
-        angle: angle*Math.PI/180,
-        isStatic: object.static
-      })*/
+    lastConnections = presentConnections
+  }
 
-      Matter.World.add(engine.world, body)
-      matterIdToWorldObject.set(body.id, { object, name })
-      referenceToBody.set(name, body)
-    })
+  let lastParts = new Set()
 
-  Object
-    .values(world.connections)
-    .forEach(insertConnection)
+  function updateParts() {
+    const presentParts = new Set(Object.keys(world.parts))
+
+    presentParts
+      .difference(lastParts)
+      .forEach(insertPart)
+
+    lastParts
+      .difference(presentParts)
+      .forEach(removePart)
+
+    lastParts = presentParts
+  }
+
+  updateParts()
+  updateConnections()
 
   Matter.Events.on(engine, 'afterUpdate', function() {
     Matter.Composite.allBodies(engine.world).forEach(function(body) {
@@ -130,17 +115,63 @@
     //renderCanvas()
   })
 
-  function insertConnection({ from, to, stiffness }) {
+  function insertPart(name) {
+    const object = world.parts[name]
+
+    const { x, y, width, height, angle, parts={} } = object
+    const body = Matter.Bodies.rectangle(x, y, width, height, {
+      angle: angle*Math.PI/180,
+      friction: 0.5,
+      restitution: 0.1,
+      density: 0.001
+    })
+
+    Object.values(parts).forEach(part => {
+      const rotatedPoint = Matter.Vector.rotate({ x: part.x, y: part.y }, angle*Math.PI/180)
+      const partBody = Matter.Bodies.rectangle(
+        rotatedPoint.x + object.x,
+        rotatedPoint.y + object.y,
+        part.width,
+        part.height,
+        {
+          angle: (angle + part.angle)*Math.PI/180
+        }
+      )
+    })
+
+    Matter.World.add(engine.world, body)
+    matterIdToWorldObject.set(body.id, { object, name })
+    referenceToBody.set(name, body)
+  }
+
+  function removePart(name) {
+    const body = referenceToBody.get(name)
+    Matter.World.remove(engine.world, body)
+    matterIdToWorldObject.delete(body.id)
+    referenceToBody.delete(name)
+  }
+
+  const nameToConstraint = {}
+
+  function insertConnection(name) {
+    const { from, to, stiffness } = world.connections[name]
     const worldPointA = objectToWorldPoint(from, resolveReference(from.reference, world))
     const worldPointB = objectToWorldPoint(to, resolveReference(to.reference, world))
-    Matter.World.add(engine.world, Matter.Constraint.create({
+    const constraint = Matter.Constraint.create({
       bodyA: referenceToBody.get(from.reference),
       bodyB: referenceToBody.get(to.reference),
       pointA: from.reference ? { x: from.x, y: from.y } : worldPointA,
       pointB: to.reference ? { x: to.x, y: to.y } : worldPointB,
       length: distance(worldPointA, worldPointB),
       stiffness
-    }))
+    })
+    nameToConstraint[name] = constraint
+    Matter.World.add(engine.world, constraint)
+  }
+
+  function removeConnection(name) {
+    Matter.World.remove(engine.world, nameToConstraint[name])
+    delete nameToConstraint[name]
   }
 
   function renderCanvas() {

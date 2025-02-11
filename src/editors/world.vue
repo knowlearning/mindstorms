@@ -6,6 +6,8 @@
   import Button from '../button.vue'
   import YAMLEditor from './yaml.vue'
   import { worldToObjectPoint, objectToWorldPoint, resolveReference } from '../helpers.js'
+  import BoundingRectangle from '../bounding-rectangle.vue'
+  import Constraint from '../constraint.vue'
 
   const props = defineProps({
     uuid: String
@@ -71,19 +73,6 @@
   function handleClick({ target, event }) {
     selected.value = target
   }
-
-  const constraintWorldCoordinates = computed(() => {
-    return Object.entries(mindstorm.constraints).map(([name, {from, to}]) => {
-      return {
-        name,
-        from: objectToWorldPoint(from, resolveReference(from.reference, mindstorm)),
-        to: objectToWorldPoint(to, resolveReference(to.reference, mindstorm))
-      }
-    })
-  })
-
-
-
 
   let currentConstraint = null
   function handleDragstart({ event: { detail: { svg_x:x, svg_y:y } } }) {
@@ -262,122 +251,33 @@
         @hoverend="handleHoverend"
       >
         <template v-slot:overlay>
-          <g
-            v-if="selected"
-            :transform="`
-              translate(
-                ${selectedPart.x},
-                ${selectedPart.y}
-              )
-              rotate(${selectedPart.angle}, 0, 0)
-            `"
-          >
-            <rect
-              :x="-selectedPart.width/2"
-              :y="-selectedPart.height/2"
-              :width="selectedPart.width"
-              :height="selectedPart.height"
-              fill="none"
-              stroke-width="0.5"
-              stroke="black"
-              stroke-dasharray="1,1"
-              v-drag
-              style="pointer-events: none;"
-            />
-            <circle
-              :cx="0"
-              :cy="0"
-              :r="1"
-              style="pointer-events: none;"
-            />
-            <circle
-              :cx="selectedPart.width/2"
-              :cy="selectedPart.height/2"
-              :r="4"
-              v-drag
-              class="resizer-circle"
-              @mousedown.stop
-              @drag="handleResizeAndRotate"
-            />
-          </g>
-          <g
-            v-if="hovered"
-            :transform="`
-              translate(
-                ${hoveredPart.x},
-                ${hoveredPart.y}
-              )
-              rotate(${hoveredPart.angle}, 0, 0)
-            `"
-            style="pointer-events: none;"
-          >
-            <rect
-              :x="-hoveredPart.width/2"
-              :y="-hoveredPart.height/2"
-              :width="hoveredPart.width"
-              :height="hoveredPart.height"
-              fill="rgba(0,0,0,0)"
-              stroke-width="0.5"
-              stroke="rgba(0,0,0,0.25)"
-              stroke-dasharray="1,1"
-            />
-            <circle
-              :cx="0"
-              :cy="0"
-              :r="1"
-            />
-          </g>
-          <g
-            v-for="{from, to, name} in constraintWorldCoordinates"
+          <BoundingRectangle
+            v-if="selectedPart"
+            v-bind="selectedPart"
+            @corner-drag="handleResizeAndRotate"
+            state="selected"
+          />
+          <BoundingRectangle
+            v-if="hoveredPart"
+            v-bind="hoveredPart"
+            state="hovered"
+          />
+          <BoundingRectangle
+            v-if="hoveredPart"
+            v-bind="hoveredPart"
+            @corner-drag="handleResizeAndRotate"
+          />
+          <Constraint
+            v-for="name in Object.keys(mindstorm.constraints)"
             :key="name"
             :style="{
               'pointer-events': currentConstraint ? 'none' : 'auto'
             }"
+            :selected="selectedConstraint === name"
+            :world="mindstorm"
+            :name="name"
             @mousedown.stop="selectedConstraint = name"
-          >
-            <line
-              :x1="from.x"
-              :y1="from.y"
-              :x2="to.x"
-              :y2="to.y"
-              stroke-width="0.5"
-              stroke="rgba(0,0,0,0.5)"
-            />
-            <circle
-              :cx="from.x"
-              :cy="from.y"
-              :r="1"
-              stroke="rgba(0,0,0,0.5)"
-              stroke-width="0.5"
-              fill="rgba(0,0,0,0)"
-              v-drag
-              @drag="({ detail: { svg_x, svg_y } }) => {
-                const { x, y } = worldToObjectPoint(
-                  { x:svg_x, y:svg_y },
-                  resolveReference(mindstorm.constraints[name].from.reference, mindstorm)
-                )
-                mindstorm.constraints[name].from.x = x
-                mindstorm.constraints[name].from.y = y
-              }"
-            />
-            <circle
-              :cx="to.x"
-              :cy="to.y"
-              :r="1"
-              stroke="rgba(0,0,0,0.5)"
-              stroke-width="0.5"
-              fill="rgba(0,0,0,0)"
-              v-drag
-              @drag="({ detail: { svg_x, svg_y } }) => {
-                const { x, y } = worldToObjectPoint(
-                  { x:svg_x, y:svg_y },
-                  resolveReference(mindstorm.constraints[name].to.reference, mindstorm)
-                )
-                mindstorm.constraints[name].to.x = x
-                mindstorm.constraints[name].to.y = y
-              }"
-            />
-          </g>
+          />
         </template>
       </World>
     </div>
@@ -497,14 +397,6 @@
 
   .sidebar-mindstorm-item.selected {
     background: #EEEEEE;
-  }
-
-  .resizer-circle {
-    fill: rgba(0,0,0,0.05);
-  }
-
-  .resizer-circle:hover {
-    fill: rgba(0,0,0,0.2);
   }
 
   #code-sidebar {

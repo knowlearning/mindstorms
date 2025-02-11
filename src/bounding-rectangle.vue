@@ -61,7 +61,11 @@
   }
 
   .hovered rect {
-    stroke: rgba(0,0,0,0.25);
+    stroke: rgba(0,0,0,0.3);
+  }
+
+  .passive rect {
+    stroke: rgba(0,0,0,0.1);
   }
 
   .resizer-circle {

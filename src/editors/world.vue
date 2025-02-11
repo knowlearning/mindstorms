@@ -206,6 +206,12 @@
     v.y *= s
   }
 
+  function getBoundingRectState(part) {
+    if (selectedPart.value === part) return 'selected'
+    else if (hoveredPart.value === part) return 'hovered'
+    else return 'passive'
+  }
+
 </script>
 
 <template>
@@ -252,20 +258,10 @@
       >
         <template v-slot:overlay>
           <BoundingRectangle
-            v-if="selectedPart"
-            v-bind="selectedPart"
+            v-for="part in mindstorm.parts"
+            v-bind="part"
             @corner-drag="handleResizeAndRotate"
-            state="selected"
-          />
-          <BoundingRectangle
-            v-if="hoveredPart"
-            v-bind="hoveredPart"
-            state="hovered"
-          />
-          <BoundingRectangle
-            v-if="hoveredPart"
-            v-bind="hoveredPart"
-            @corner-drag="handleResizeAndRotate"
+            :state="getBoundingRectState(part)"
           />
           <Constraint
             v-for="name in Object.keys(mindstorm.constraints)"

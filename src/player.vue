@@ -5,6 +5,8 @@
   import { useAnimationLoop } from './composables/animation.js'
   import { useKeyboardEvents } from './composables/keyboard.js'
   import { worldToObjectPoint, objectToWorldPoint, resolveReference } from './helpers.js'
+  import BoundingRectangle from './bounding-rectangle.vue'
+  import Constraint from './constraint.vue'
 
   const canvas = ref(null)
 
@@ -149,6 +151,10 @@
   })
 
   watch(() => canvas.value, () => {
+    //renderCanvas()
+  })
+
+  function renderCanvas() {
     const render = Matter.Render.create({
       canvas: canvas.value,
       engine,
@@ -161,7 +167,7 @@
       }
     })
     Matter.Render.run(render)
-  })
+  }
 
 
 
@@ -225,53 +231,42 @@
     return Math.sqrt(x*x + y*y)
   }
 
-
-
-
-
-
-
-
-function handleEvent(object, name, event) {
-  if (object[name]) {
-    try {
-      const scopedHandler = new Function('world', 'event', `with (world, event) { ${object[name]} }`)
-      const result = scopedHandler.bind(object)(world, event)
-    } catch (error) {
-      console.error('Error:', error.message)
+  function handleEvent(object, name, event) {
+    if (object[name]) {
+      try {
+        const scopedHandler = new Function('world', 'event', `with (world, event) { ${object[name]} }`)
+        const result = scopedHandler.bind(object)(world, event)
+      } catch (error) {
+        console.error('Error:', error.message)
+      }
     }
   }
-}
 
-Matter.Events.on(engine, 'collisionStart', event => {
-  event.pairs.forEach(pair => {
-    const objectA = matterIdToObject.get(pair.bodyA.id)
-    const objectB = matterIdToObject.get(pair.bodyB.id)
+  Matter.Events.on(engine, 'collisionStart', event => {
+    event.pairs.forEach(pair => {
+      const objectA = matterIdToObject.get(pair.bodyA.id)
+      const objectB = matterIdToObject.get(pair.bodyB.id)
 
-    console.log(objectA, objectB)
+      console.log(objectA, objectB)
 
-    if (objectA && objectB) {
-      handleEvent(objectA, 'collide', { other: objectB })
-      handleEvent(objectB, 'collide', { other: objectA })
-    }
+      if (objectA && objectB) {
+        handleEvent(objectA, 'collide', { other: objectB })
+        handleEvent(objectB, 'collide', { other: objectA })
+      }
+    })
   })
-})
 
-Matter.Events.on(engine, 'collisionEnd', event => {
-  event.pairs.forEach(pair => {
-    const objectA = matterIdToObject.get(pair.bodyA.id)
-    const objectB = matterIdToObject.get(pair.bodyB.id)
+  Matter.Events.on(engine, 'collisionEnd', event => {
+    event.pairs.forEach(pair => {
+      const objectA = matterIdToObject.get(pair.bodyA.id)
+      const objectB = matterIdToObject.get(pair.bodyB.id)
 
-    if (objectA && objectB) {
-      handleEvent(objectA, 'uncollide', { other: objectB })
-      handleEvent(objectB, 'uncollide', { other: objectA })
-    }
+      if (objectA && objectB) {
+        handleEvent(objectA, 'uncollide', { other: objectB })
+        handleEvent(objectB, 'uncollide', { other: objectA })
+      }
+    })
   })
-})
-
-
-
-
 
 </script>
 
@@ -284,7 +279,22 @@ Matter.Events.on(engine, 'collisionEnd', event => {
       @dragend="handleDragstop"
       @click="handleClick"
       clip
-    />
+    >
+      <template v-slot:overlay>
+        <BoundingRectangle
+          v-for="part in world.parts"
+          v-bind="part"
+          state="passive"
+        />
+        <Constraint
+          v-for="name in Object.keys(world.constraints)"
+          :key="name"
+          :selected="false"
+          :world="world"
+          :name="name"
+        />
+      </template>
+    </World>
     <canvas
       ref="canvas"
     />

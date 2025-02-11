@@ -2,7 +2,7 @@
   import { computed } from 'vue'
   import { worldToObjectPoint, objectToWorldPoint, resolveReference } from './helpers.js'
 
-  const { world, name } = defineProps({
+  const { world, name, editable } = defineProps({
   	world: Object,
   	name: String,
     active: Boolean,

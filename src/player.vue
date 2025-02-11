@@ -108,16 +108,14 @@
   Object
     .values(world.constraints)
     .forEach(({ from, to, stiffness }) => {
-      console.log('BODY A', referenceToBody.get(from.reference),'BODY B', referenceToBody.get(to.reference), distance(from, to))
+      const worldPointA = objectToWorldPoint(from, resolveReference(from.reference, world))
+      const worldPointB = objectToWorldPoint(to, resolveReference(to.reference, world))
       Matter.World.add(engine.world, Matter.Constraint.create({
         bodyA: referenceToBody.get(from.reference),
         bodyB: referenceToBody.get(to.reference),
-        pointA: { x: from.x, y: from.y },
-        pointB: { x: to.x, y: to.y },
-        length: distance(
-          objectToWorldPoint(from, resolveReference(from.reference, world)),
-          objectToWorldPoint(to, resolveReference(to.reference, world))
-        ),
+        pointA: from.reference ? { x: from.x, y: from.y } : worldPointA,
+        pointB: to.reference ? { x: to.x, y: to.y } : worldPointB,
+        length: distance(worldPointA, worldPointB),
         stiffness
       }))
     })
@@ -246,8 +244,6 @@
     event.pairs.forEach(pair => {
       const objectA = matterIdToObject.get(pair.bodyA.id)
       const objectB = matterIdToObject.get(pair.bodyB.id)
-
-      console.log(objectA, objectB)
 
       if (objectA && objectB) {
         handleEvent(objectA, 'collide', { other: objectB })

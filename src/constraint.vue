@@ -5,7 +5,7 @@
   const { world, name, editable } = defineProps({
   	world: Object,
   	name: String,
-    active: Boolean,
+    selected: Boolean,
     editable: Boolean
   })
 
@@ -34,14 +34,22 @@
 </script>
 
 <template>
-  <g
-    :class="{ active }"
-  >
+  <g :class="{ selected }">
     <line
+      class="target"
       :x1="worldPositions.from.x"
       :y1="worldPositions.from.y"
       :x2="worldPositions.to.x"
       :y2="worldPositions.to.y"
+      stroke-linecap="round"
+    />
+    <line
+      class="drawn"
+      :x1="worldPositions.from.x"
+      :y1="worldPositions.from.y"
+      :x2="worldPositions.to.x"
+      :y2="worldPositions.to.y"
+      stroke-linecap="round"
     />
     <circle
       :cx="worldPositions.from.x"
@@ -66,15 +74,26 @@
   </g>
 </template>
 
-<style>
+<style scoped>
 
   line {
     stroke-width: 0.5;
     stroke: rgba(0,0,0,0.5);
   }
 
-  .active line {
+  line.target {
+    stroke-width: 2;
+    stroke: rgba(0,0,0,0);
+  }
+
+  .selected line.drawn,
+  .selected circle {
     stroke: rgba(0,0,0,1);
+  }
+
+  .selected line.target {
+    stroke-width: 2;
+    stroke: rgba(0,0,0,0.1);
   }
 
 </style>

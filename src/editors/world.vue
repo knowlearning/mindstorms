@@ -34,8 +34,8 @@
 
   if (!mindstorm.parts) mindstorm.parts = {}
   if (!mindstorm.constraints) mindstorm.constraints = {}
-  if (!mindstorm.x) mindstorm.x = 0
-  if (!mindstorm.y) mindstorm.y = 0
+  if (!mindstorm.x) mindstorm.x = 50
+  if (!mindstorm.y) mindstorm.y = 50
   if (!mindstorm.angle) mindstorm.angle = 0
   if (!mindstorm.width) mindstorm.width = 100
   if (!mindstorm.height) mindstorm.height = 100
@@ -72,6 +72,7 @@
 
   function handleClick({ target, event }) {
     selected.value = target
+    selectedConstraint.value = null
   }
 
   let currentConstraint = null
@@ -87,7 +88,7 @@
             ),
             reference: hovered.value
           },
-          to: { x, y },
+          to: { x, y, reference: null },
           stiffness: 0.9
         }
         currentConstraint = mindstorm.constraints[name]
@@ -187,7 +188,9 @@
 
   function removeSelected() {
     delete mindstorm.parts[selected.value]
+    delete mindstorm.constraints[selectedConstraint.value]
     selected.value = null
+    selectedConstraint.value = null
   }
 
   function handleResize({ target, event }) {
@@ -210,6 +213,11 @@
     if (selectedPart.value === part) return 'selected'
     else if (hoveredPart.value === part) return 'hovered'
     else return 'passive'
+  }
+
+  function selectConstraint(name) {
+    selected.value = null
+    selectedConstraint.value = name
   }
 
 </script>
@@ -273,7 +281,7 @@
             :selected="selectedConstraint === name"
             :world="mindstorm"
             :name="name"
-            @mousedown.stop="selectedConstraint = name"
+            @mousedown.stop="selectConstraint(name)"
           />
         </template>
       </World>

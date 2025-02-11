@@ -9,7 +9,7 @@
     editable: Boolean
   })
 
-  const constraint = world.constraints[name]
+  const constraint = world.connections[name]
 
   const worldPositions = computed(() => {
     const { from, to } = constraint
@@ -59,7 +59,7 @@
       stroke-width="0.5"
       fill="rgba(0,0,0,0)"
       v-drag
-      @drag="event => handleDrag(event, world.constraints[name].from)"
+      @drag="event => handleDrag(event, world.connections[name].from)"
     />
     <circle
       :cx="worldPositions.to.x"
@@ -69,7 +69,7 @@
       stroke-width="0.5"
       fill="rgba(0,0,0,0)"
       v-drag
-      @drag="event => handleDrag(event, world.constraints[name].to)"
+      @drag="event => handleDrag(event, world.connections[name].to)"
     />
   </g>
 </template>

@@ -30,40 +30,29 @@
   registerAnimationCallback(() => {
     Object
       .entries(world.parts)
-      .forEach(([name1, object1]) => {
-        let { initialize, step, collide, uncollide, collisions } = object1
-        if (!initialized.has(name1)) {
-          initialized.add(name1)
-          if (initialize) {
-            try {
-              const event = {}
-
-              const scopedHandler = new Function('world', 'event', `with (world, event) { ${initialize} }`)
-              const result = scopedHandler.bind(world.parts[name1])(world, event)
-            }
-            catch (error) {
-              console.error('Error:', error.message)
-            }
-          }
+      .forEach(([name, object]) => {
+        const { initialize, step } = object
+        if (!initialized.has(`objects/${name}`)) {
+          initialized.add(`objects/${name}`)
+          if (initialize) handleEvent(name, 'initialize', {})
         }
-        if (step) {
-          try {
-            const event = {}
-
-            const scopedHandler = new Function('world', 'event', `with (world, event) { ${step} }`)
-            const result = scopedHandler.bind(world.parts[name1])(world, event)
-          }
-          catch (error) {
-            console.error('Error:', error.message)
-          }
+        if (step) handleEvent(name, 'step', {})
+      })
+    Object
+      .entries(world.connections)
+      .forEach(([name, connection]) => {
+        if (!initialized.has(`connections/${name}`)) {
+          initialized.add(`connections/${name}`)
+          insertConnection(connection)
         }
       })
+    
   })
 
   Object.keys(world).forEach(key => delete world[key])
   Object.assign(world, mindstorm)
 
-  const matterIdToObject = new Map()
+  const matterIdToWorldObject = new Map()
   const referenceToBody = new Map()
 
   Object
@@ -101,28 +90,17 @@
       })*/
 
       Matter.World.add(engine.world, body)
-      matterIdToObject.set(body.id, object)
+      matterIdToWorldObject.set(body.id, { object, name })
       referenceToBody.set(name, body)
     })
 
   Object
-    .values(world.constraints)
-    .forEach(({ from, to, stiffness }) => {
-      const worldPointA = objectToWorldPoint(from, resolveReference(from.reference, world))
-      const worldPointB = objectToWorldPoint(to, resolveReference(to.reference, world))
-      Matter.World.add(engine.world, Matter.Constraint.create({
-        bodyA: referenceToBody.get(from.reference),
-        bodyB: referenceToBody.get(to.reference),
-        pointA: from.reference ? { x: from.x, y: from.y } : worldPointA,
-        pointB: to.reference ? { x: to.x, y: to.y } : worldPointB,
-        length: distance(worldPointA, worldPointB),
-        stiffness
-      }))
-    })
+    .values(world.connections)
+    .forEach(insertConnection)
 
   Matter.Events.on(engine, 'afterUpdate', function() {
     Matter.Composite.allBodies(engine.world).forEach(function(body) {
-      const o = matterIdToObject.get(body.id)
+      const { object:o } = matterIdToWorldObject.get(body.id)
       if (!o) return // this is the case when the body is a part of the object
 
       const p = body.position
@@ -152,6 +130,19 @@
     //renderCanvas()
   })
 
+  function insertConnection({ from, to, stiffness }) {
+    const worldPointA = objectToWorldPoint(from, resolveReference(from.reference, world))
+    const worldPointB = objectToWorldPoint(to, resolveReference(to.reference, world))
+    Matter.World.add(engine.world, Matter.Constraint.create({
+      bodyA: referenceToBody.get(from.reference),
+      bodyB: referenceToBody.get(to.reference),
+      pointA: from.reference ? { x: from.x, y: from.y } : worldPointA,
+      pointB: to.reference ? { x: to.x, y: to.y } : worldPointB,
+      length: distance(worldPointA, worldPointB),
+      stiffness
+    }))
+  }
+
   function renderCanvas() {
     const render = Matter.Render.create({
       canvas: canvas.value,
@@ -171,56 +162,24 @@
 
   function handleClick({target: name, event: rawEvent}) {
     const handler = world.parts?.[name]?.click
-    if (handler) {
-      try {
-        const event = {}
-        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world.parts[name])(world, event)
-      } catch (error) {
-        console.error('Error:', error.message)
-      }
-    }
+    if (handler) handleEvent(name, 'click', {})
   }
 
   function handleDrag({target: name, event }) {
     const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
     const handler = world.parts?.[name]?.drag
-    if (handler) {
-      try {
-        const event = { x, y, dx, dy }
-        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world.parts[name])(world, event)
-      } catch (error) {
-        console.error('Error:', error.message)
-      }
-    }
+    if (handler) handleEvent(name, 'drag', { x, y, dx, dy })
   }
 
   function handleDragstart({target: name, event }) {
     const { detail: { svg_x:x, svg_y:y, svg_dx:dx, svg_dy:dy } } = event
     const handler = world.parts?.[name]?.dragstart
-    if (handler) {
-      try {
-        const event = { x, y, dx, dy }
-        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world.parts[name])(world, event)
-      } catch (error) {
-        console.error('Error:', error.message)
-      }
-    }
+    if (handler) handleEvent(name, 'dragstart', { x, y, dx, dy })
   }
 
   function handleDragstop({target: name, event }) {
     const handler = world.parts?.[name]?.dragend
-    if (handler) {
-      try {
-        const event = {}
-        const scopedHandler = new Function('world', 'event', `with (world, event) { ${handler} }`)
-        const result = scopedHandler.bind(world.parts[name])(world, event)
-      } catch (error) {
-        console.error('Error:', error.message)
-      }
-    }
+    if (handler) handleEvent(name, 'dragend', event)
   }
 
   function distance(a, b) {
@@ -229,37 +188,39 @@
     return Math.sqrt(x*x + y*y)
   }
 
-  function handleEvent(object, name, event) {
-    if (object[name]) {
+  function handleEvent(objectName, eventName, event) {
+    const object = world.parts[objectName]
+    const handler = object?.[eventName]
+    if (handler) {
       try {
-        const scopedHandler = new Function('world', 'event', `with (world, event) { ${object[name]} }`)
-        const result = scopedHandler.bind(object)(world, event)
+        const scopedHandler = new Function('world', 'name', 'event', `with (world, name, event) { ${handler} }`)
+        const result = scopedHandler.bind(object)(world, objectName, event)
       } catch (error) {
-        console.error('Error:', error.message)
+        console.error('Error', objectName, eventName, error)
       }
     }
   }
 
   Matter.Events.on(engine, 'collisionStart', event => {
     event.pairs.forEach(pair => {
-      const objectA = matterIdToObject.get(pair.bodyA.id)
-      const objectB = matterIdToObject.get(pair.bodyB.id)
+      const woA = matterIdToWorldObject.get(pair.bodyA.id)
+      const woB = matterIdToWorldObject.get(pair.bodyB.id)
 
-      if (objectA && objectB) {
-        handleEvent(objectA, 'collide', { other: objectB })
-        handleEvent(objectB, 'collide', { other: objectA })
+      if (woA && woB) {
+        handleEvent(woA.name, 'collide', { other: woB.object, otherName: woB.name })
+        handleEvent(woB.name, 'collide', { other: woA.object, otherName: woA.name })
       }
     })
   })
 
   Matter.Events.on(engine, 'collisionEnd', event => {
     event.pairs.forEach(pair => {
-      const objectA = matterIdToObject.get(pair.bodyA.id)
-      const objectB = matterIdToObject.get(pair.bodyB.id)
+      const woA = matterIdToWorldObject.get(pair.bodyA.id)
+      const woB = matterIdToWorldObject.get(pair.bodyB.id)
 
-      if (objectA && objectB) {
-        handleEvent(objectA, 'uncollide', { other: objectB })
-        handleEvent(objectB, 'uncollide', { other: objectA })
+      if (woA && woB) {
+        handleEvent(woA.name, 'uncollide', { other: woB.object, otherName: woB.name })
+        handleEvent(woB.name, 'uncollide', { other: woA.object, otherName: woA.name })
       }
     })
   })
@@ -277,18 +238,20 @@
       clip
     >
       <template v-slot:overlay>
-        <BoundingRectangle
-          v-for="part in world.parts"
-          v-bind="part"
-          state="passive"
-        />
-        <Constraint
-          v-for="name in Object.keys(world.constraints)"
-          :key="name"
-          :selected="false"
-          :world="world"
-          :name="name"
-        />
+        <g style="pointer-events: none;">
+          <BoundingRectangle
+            v-for="part in world.parts"
+            v-bind="part"
+            state="passive"
+          />
+          <Constraint
+            v-for="name in Object.keys(world.connections)"
+            :key="name"
+            :selected="false"
+            :world="world"
+            :name="name"
+          />
+        </g>
       </template>
     </World>
     <canvas

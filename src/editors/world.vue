@@ -33,7 +33,7 @@
   const mode = ref(null)
 
   if (!mindstorm.parts) mindstorm.parts = {}
-  if (!mindstorm.constraints) mindstorm.constraints = {}
+  if (!mindstorm.connections) mindstorm.connections = {}
   if (!mindstorm.x) mindstorm.x = 50
   if (!mindstorm.y) mindstorm.y = 50
   if (!mindstorm.angle) mindstorm.angle = 0
@@ -79,8 +79,8 @@
   function handleDragstart({ event: { detail: { svg_x:x, svg_y:y } } }) {
     if (hovered.value) {
       if (mode.value === MODES.CONSTRAINT) {
-        const name = newName('constraint', mindstorm.constraints)
-        mindstorm.constraints[name] = {
+        const name = newName('constraint', mindstorm.connections)
+        mindstorm.connections[name] = {
           from: {
             ...worldToObjectPoint(
               { x, y },
@@ -91,7 +91,7 @@
           to: { x, y, reference: null },
           stiffness: 0.9
         }
-        currentConstraint = mindstorm.constraints[name]
+        currentConstraint = mindstorm.connections[name]
       }
     }
   }
@@ -179,7 +179,7 @@
 
   function scaleConstraints(reference, scale) {
     Object
-      .values(mindstorm.constraints)
+      .values(mindstorm.connections)
       .forEach(({ to, from }) => {
         if (to.reference === reference) scaleVector(to, scale)
         if (from.reference === reference) scaleVector(from, scale)
@@ -188,13 +188,13 @@
 
   function removeSelected() {
     delete mindstorm.parts[selected.value]
-    delete mindstorm.constraints[selectedConstraint.value]
+    delete mindstorm.connections[selectedConstraint.value]
 
     Object
-      .entries(mindstorm.constraints)
+      .entries(mindstorm.connections)
       .forEach(([key, { from, to }]) => {
         if (from.reference && from.reference === selected.value) {
-          delete mindstorm.constraints[key]
+          delete mindstorm.connections[key]
         }
       })
 
@@ -282,7 +282,7 @@
             :state="getBoundingRectState(part)"
           />
           <Constraint
-            v-for="name in Object.keys(mindstorm.constraints)"
+            v-for="name in Object.keys(mindstorm.connections)"
             :key="name"
             :style="{
               'pointer-events': currentConstraint ? 'none' : 'auto'

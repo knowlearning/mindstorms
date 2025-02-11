@@ -189,6 +189,16 @@
   function removeSelected() {
     delete mindstorm.parts[selected.value]
     delete mindstorm.constraints[selectedConstraint.value]
+
+    Object
+      .entries(mindstorm.constraints)
+      .forEach(([key, { from, to }]) => {
+        if (from.reference && from.reference === selected.value) {
+          delete mindstorm.constraints[key]
+        }
+      })
+
+
     selected.value = null
     selectedConstraint.value = null
   }

@@ -105,7 +105,7 @@
 
   Object
     .values(world.constraints)
-    .forEach(({ from, to }) => {
+    .forEach(({ from, to, stiffness }) => {
       console.log('BODY A', referenceToBody.get(from.reference),'BODY B', referenceToBody.get(to.reference), distance(from, to))
       Matter.World.add(engine.world, Matter.Constraint.create({
         bodyA: referenceToBody.get(from.reference),
@@ -116,7 +116,7 @@
           objectToWorldPoint(from, resolveReference(from.reference, world)),
           objectToWorldPoint(to, resolveReference(to.reference, world))
         ),
-        stiffness: 1
+        stiffness
       }))
     })
 

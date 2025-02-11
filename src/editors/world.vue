@@ -98,7 +98,8 @@
             ),
             reference: hovered.value
           },
-          to: { x, y }
+          to: { x, y },
+          stiffness: 0.9
         }
         currentConstraint = mindstorm.constraints[name]
       }
@@ -124,11 +125,11 @@
   }
 
 
-  function handleHoverstart({ target, event: { detail: { svg_x, svg_y } } }) {
+  function handleHoverstart({ target }) {
     hovered.value = target
   }
 
-  function handleHover({ target, event: { detail: { svg_dx, svg_dy, svg_x, svg_y } } }) {
+  function handleHover({ target }) {
     if (currentConstraint) {
       if (currentConstraint.from.reference === target) {
         currentConstraint.to.reference = null
@@ -137,10 +138,9 @@
     }
   }
 
-  function handleHoverend({ target, event: { detail } }) {
+  function handleHoverend({ target }) {
     hovered.value = null
   }
-
 
   function distance(x1, y1, x2, y2) {
     const a = x1-x2

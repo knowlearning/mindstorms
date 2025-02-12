@@ -8,6 +8,8 @@
   import BoundingRectangle from './bounding-rectangle.vue'
   import Constraint from './constraint.vue'
 
+  const nameToConstraint = {}
+
   const canvas = ref(null)
 
   const engine = Matter.Engine.create()
@@ -123,7 +125,7 @@
       angle: angle*Math.PI/180,
       friction: 0.5,
       restitution: 0.1,
-      density: 0.001
+      density: 0.1
     })
 
     Object.values(parts).forEach(part => {
@@ -150,8 +152,6 @@
     matterIdToWorldObject.delete(body.id)
     referenceToBody.delete(name)
   }
-
-  const nameToConstraint = {}
 
   function insertConnection(name) {
     const { from, to, stiffness } = world.connections[name]
